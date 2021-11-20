@@ -1,0 +1,12 @@
+{
+  "name": "musure-cloud-functions",
+  "version": "1.0.0",
+  "description": "cloud functions to run on Moralis Server ",
+  "main": "index.js",
+  "scripts": {
+    "start":"moralis-admin-cli watch-cloud-folder --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje --moralisSubdomain umgm3j3mdn4b.usemoralis.com --autoSave 1 --moralisCloudfolder ./cloud",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
