@@ -1,7 +1,7 @@
 //req.user.id ID DEL USUARIO
 //Date.now manda unix en UTC
-const logger = Moralis.Cloud.getLogger();
-logger.info("get_login");
+// const logger = Moralis.Cloud.getLogger();
+// logger.info("get_login");
 
 Moralis.Cloud.define("get_login", async (req) =>{
     
