@@ -1,9 +1,9 @@
+const Egg = Moralis.Object.extend('Egg');
+
 Moralis.Cloud.define('mint_egg', async (req) => {
-    const Egg = Moralis.Object.extend('Egg');
-    const query = new Moralis.Query(Moralis.User);
     
     try{
-        let actualUser = await query.get( req.user.id, { useMasterKey:true } )
+        let actualUser = await query_user.get( req.user.id, { useMasterKey:true } )
         const newEgg = new Egg();
         newEgg.set('timeHatch', getDate(2,"hours"))
         newEgg.set('isHatched', false)
@@ -17,7 +17,7 @@ Moralis.Cloud.define('mint_egg', async (req) => {
     
     catch(error){
         return {
-            created: true,
+            created: false,
             messsage: error.message
         }
     }
