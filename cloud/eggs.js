@@ -24,3 +24,18 @@ Moralis.Cloud.define('mint_egg', async (req) => {
 
     //LUEGO MANEJAR EL TEMA DINERO DEL USUARIO 
 });
+
+Moralis.Cloud.define('get_master_egg', async (req) => {
+    try {
+        let mastereggs = await query_egg_master.find()
+        return {
+            master_eggs : mastereggs,
+            message: 'Egg master info'
+        }
+    } catch (error) {
+        return {
+            master_eggs : false,
+            message: error.message
+        }
+    }
+});
