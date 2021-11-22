@@ -9,12 +9,18 @@ Moralis.Cloud.define('mint_egg', async (req) => {
         newEgg.set('isHatched', false)
         newEgg.set('owner', actualUser)
         await newEgg.save()
-        return "egg created"
+        return {
+            created:true,
+            messsage:"Egg created"
+        }
+    }
+    
+    catch(error){
+        return {
+            created: true,
+            messsage: error.message
+        }
     }
 
-    catch(error){
-        return error.message
-    }
-    
-    
+    //LUEGO MANEJAR EL TEMA DINERO DEL USUARIO 
 });
