@@ -27,4 +27,24 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
     }
 });
 
+Moralis.Cloud.define('put_rename', async (req) => {
+    try {
+        let avatarToRename = await query_avatar.get(req.params.avatar_id)
+        avatarToRename.set('name', req.params.new_name)
+        await avatarToRename.save()
+    
+        return {
+            avatar: avatarToRename,
+            message: "Name Changed"
+        }
+    } catch (error) {
+        return {
+            avatar: false,
+            message: error.message
+        }
+        
+    }
+    
+});
+
 

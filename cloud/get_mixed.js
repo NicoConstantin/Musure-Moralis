@@ -9,7 +9,7 @@ Moralis.Cloud.define('get_crew', async (req) => {
         query_egg.equalTo('owner', newUser)
         let eggsRaw = await query_egg.find()
         let eggsUser = eggsRaw.filter(egg=> egg.attributes.isHatched === false )
-
+        
         return {
             result: {
                 avatars : avatarsUser,
