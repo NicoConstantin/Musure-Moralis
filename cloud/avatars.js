@@ -2,6 +2,9 @@ const Avatar = Moralis.Object.extend('Avatar');
 
 Moralis.Cloud.define('mint_avatar', async (req) => {
 
+    const query_egg = new Moralis.Query('Egg')
+    const query_user = new Moralis.Query(Moralis.User)
+
     try {
         let eggToHatch = await query_egg.get( req.params.egg_id )
         let actualUser = await query_user.get( req.user.id, { useMasterKey:true } )
@@ -28,6 +31,9 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
 });
 
 Moralis.Cloud.define('put_rename', async (req) => {
+    
+    const query_avatar = new Moralis.Query('Avatar')
+    
     try {
         let avatarToRename = await query_avatar.get(req.params.avatar_id)
         avatarToRename.set('name', req.params.new_name)

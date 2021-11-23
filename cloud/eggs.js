@@ -2,6 +2,8 @@ const Egg = Moralis.Object.extend('Egg');
 
 Moralis.Cloud.define('mint_egg', async (req) => {
     
+    const query_user = new Moralis.Query(Moralis.User)
+
     try{
         let actualUser = await query_user.get( req.user.id, { useMasterKey:true } )
         const newEgg = new Egg();
@@ -26,6 +28,9 @@ Moralis.Cloud.define('mint_egg', async (req) => {
 });
 
 Moralis.Cloud.define('get_master_egg', async (req) => {
+
+    const query_egg_master = new Moralis.Query('EGG_MASTER')
+
     try {
         let mastereggs = await query_egg_master.find()
         return {
