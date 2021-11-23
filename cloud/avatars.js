@@ -77,4 +77,18 @@ Moralis.Cloud.define('put_join_party', async (req) => {
 
 });
 
-
+Moralis.Cloud.define('get_avatar', async (req) => {
+    const query_avatar = new Moralis.Query('Avatar');
+    try {
+        let avatar = await query_avatar.get(req.params.avatar_id);
+        return {
+            avatar: avatar,
+            message: "Avatar Info"
+        }
+    } catch (error) {
+        return {
+            avatar: false,
+            message: error.message
+        }
+    }
+});
