@@ -45,15 +45,31 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
 
 Moralis.Cloud.define('get_party_data', async (req) => {
     const query_party = new Moralis.Query('Party');
+    const query_economy = new Moralis.Query('ECONOMY');
+
     try {
         let party = await query_party.get(req.params.party_id, { useMasterKey:true } )
-        return {
-            party: party,
-            message: "Party info"
+        
+        if(req.params.price){
+            query_economy.equalTo('reference','reward_per_avatar_party')
+            let price_per_avatar = await query_economy.find()
+            return {
+                party: party,
+                price: price_per_avatar[0].attributes.price,
+                message: "Party info"
+            }
         }
+
+        else{
+            return {
+                party: party,
+                message: "Party info"
+            }
+        }
+
     } catch (error) {
         return {
-            party: party,
+            party: false,
             message: error.message
         }
     }
