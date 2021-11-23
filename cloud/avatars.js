@@ -62,6 +62,7 @@ Moralis.Cloud.define('put_join_party', async (req) => {
         avatarToJoin.set('timeMine', getDate())
         avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'days'))
         avatarToJoin.set('belongParty', partyToJoin)
+        partyToJoin.addUnique('avatarsIn',avatarToJoin)
         await avatarToJoin.save()
         return {
             joined: true,
