@@ -17,10 +17,27 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
             updated:true,
             message: "Party Updated"
         }
-        
+
     } catch (error) {
         return {
             updated:true,
+            message: error.message
+        }
+    }
+});
+
+Moralis.Cloud.define('get_all_parties', async (req) => {
+    const query_party = new Moralis.Query('Party');
+    try {
+        let allParties = await query_party.find( { useMasterKey:true } )
+        return {
+            parties: allParties,
+            message: "All parties info"
+        }
+        
+    } catch (error) {
+        return {
+            parties: false,
             message: error.message
         }
     }

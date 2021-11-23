@@ -83,7 +83,7 @@ Moralis.Cloud.define('get_avatar', async (req) => {
         let avatar = await query_avatar.get(req.params.avatar_id);
         return {
             avatar: avatar,
-            message: "Avatar Info"
+            message: "Avatar info"
         }
     } catch (error) {
         return {
