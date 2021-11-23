@@ -10,7 +10,7 @@ function getDate (time, time_type) {
             return Math.floor( Date.now() / 1000) + (time * 60)
     
         default:
-            break;
+            return Math.floor( Date.now() / 1000)
     }
     
 }

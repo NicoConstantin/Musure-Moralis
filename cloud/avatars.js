@@ -53,4 +53,28 @@ Moralis.Cloud.define('put_rename', async (req) => {
     
 });
 
+Moralis.Cloud.define('put_join_party', async (req) => {
+    const query_avatar = new Moralis.Query('Avatar');
+    const query_party = new Moralis.Query('Party');
+    try {
+        let partyToJoin = await query_party.get(req.params.party_id);
+        let avatarToJoin = await query_avatar.get(req.params.avatar_id);
+        avatarToJoin.set('timeMine', getDate())
+        avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'days'))
+        avatarToJoin.set('belongParty', partyToJoin)
+        await avatarToJoin.save()
+        return {
+            joined: true,
+            message: "Avatar joined"
+        }
+
+    } catch (error) {
+        return {
+            joined: false,
+            message: error.message
+        }
+    }
+
+});
+
 
