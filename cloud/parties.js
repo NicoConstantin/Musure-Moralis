@@ -42,3 +42,19 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
         }
     }
 });
+
+Moralis.Cloud.define('get_party_data', async (req) => {
+    const query_party = new Moralis.Query('Party');
+    try {
+        let party = await query_party.get(req.params.party_id, { useMasterKey:true } )
+        return {
+            party: party,
+            message: "Party info"
+        }
+    } catch (error) {
+        return {
+            party: party,
+            message: error.message
+        }
+    }
+});
