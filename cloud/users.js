@@ -20,8 +20,9 @@ Moralis.Cloud.define("get_login", async (req) =>{
 })
 
 Moralis.Cloud.define('patch_creator_data', async (req) => {
+    const query_user = new Moralis.Query(Moralis.User)
+
     try {
-        const query_user = new Moralis.Query(Moralis.User)
         const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
         actualUser.set('creatorName', req.params.name);
         actualUser.set('creatorBio', req.params.bio);
@@ -41,4 +42,26 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
     }
     
+});
+
+Moralis.Cloud.define('claim', async (req) => {
+    const query_user = new Moralis.Query(Moralis.User)
+
+    try {
+        const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
+        let balance_claim = actualUser.attributes.balanceClaim;
+        actualUser.set('balanceClaim', 0)
+        await actualUser.save(null, { useMasterKey:true })
+
+        return {
+            balance_claim: balance_claim,
+            message: "Claim balance cleared"
+        }
+
+    } catch (error) {
+        return {
+            balance_claim: false,
+            message: error.message
+        }
+    }
 });
