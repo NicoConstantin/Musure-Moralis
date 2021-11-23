@@ -33,12 +33,12 @@ Moralis.Cloud.define('get_master_egg', async (req) => {
     const query_economy = new Moralis.Query('ECONOMY');
 
     try {
-        let economy = await query_economy.find()
+        query_economy.equalTo('reference','egg_price')
+        let price_egg = await query_economy.find()
         let mastereggs = await query_egg_master.find()
-        let price_egg = economy.find(el=>el.attributes.reference === "egg_price")
         return {
             master_eggs : mastereggs,
-            price_egg: price_egg.attributes.price,
+            price_egg: price_egg[0].attributes.price,
             message: 'Egg master info'
         }
     } catch (error) {
