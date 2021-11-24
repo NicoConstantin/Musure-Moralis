@@ -30,16 +30,69 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
         let userUpdated = await actualUser.save(null, { useMasterKey:true })
 
         return {
-            new_balance: userUpdated.attributes.balanceClaim,
+            newBalance: userUpdated.attributes.balanceClaim,
             message: "Creator quest done"
         }
         
     } catch (error) {
 
         return {
-            new_balance: false,
+            newBalance: false,
             message: error.message
         }
         
+    }
+});
+
+Moralis.Cloud.define('do_crew_quest', async (req) => {
+    const query_mission = new Moralis.Query('MISSION_MASTER');
+    const query_avatar = new Moralis.Query('Avatar');
+    const query_user = new Moralis.Query(Moralis.User);
+    try {
+        let mission = await query_mission.get(req.params.mission_id)
+        let avatar = await query_avatar.get(req.params.avatar_id)
+        let actualUser = await query_user.get(req.user.id, { useMasterKey:true })
+
+        let generated = rarityGenerator(null, mission.attributes.successRate)
+
+        avatar.set('timeMine',getDate(2,'hours'))
+        await avatar.save()
+    
+        if(generated.result){
+            //acreditar al user
+            actualUser.set('balanceClaim', actualUser.attributes.balanceClaim + mission.attributes.reward)
+            let userUpdated = await actualUser.save(null, { useMasterKey:true })
+
+            return {
+                results:{
+                    result: generated.result,
+                    roll: generated.roll,
+                    reward: mission.attributes.reward,
+                    successRate: mission.attributes.successRate,
+                    newBalance: userUpdated.attributes.balanceClaim
+                },
+                message: 'Mission successfully completed'
+            }
+        }
+
+        if(!generated.result){
+            return {
+                results:{
+                    result: generated.result,
+                    roll: generated.roll,
+                    reward: mission.attributes.reward,
+                    successRate: mission.attributes.successRate,
+                    newBalance: actualUser.attributes.balanceClaim
+                },
+                message: 'Mission failed'
+            }
+        }
+        
+        
+    } catch (error) {
+        return {
+            results:false,
+            message: error.message
+        }
     }
 });
