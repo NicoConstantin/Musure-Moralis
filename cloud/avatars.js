@@ -66,10 +66,10 @@ Moralis.Cloud.define('put_join_party', async (req) => {
         let partyToJoin = await query_party.get(req.params.party_id);
         let avatarToJoin = await query_avatar.get(req.params.avatar_id);
 
+        partyToJoin.addUnique('avatarsIn',avatarToJoin)
         avatarToJoin.set('timeMine', getDate())
         avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'days'))
         avatarToJoin.set('belongParty', partyToJoin)
-        partyToJoin.addUnique('avatarsIn',avatarToJoin)
         await avatarToJoin.save()
 
         return {
@@ -104,4 +104,38 @@ Moralis.Cloud.define('get_avatar', async (req) => {
             message: error.message
         }
     }
+});
+
+
+Moralis.Cloud.define('kick_avatar_party', async (req) => {
+
+    const query_avatar = new Moralis.Query('Avatar');
+
+    try {
+        let avatarExpired = await query_avatar.get(req.params.avatar_id)
+        
+            let avatar = avatarExpired
+            let party = avatarExpired.attributes.belongParty
+
+            party.remove('avatarsIn', avatar)
+            await party.save()
+            avatar.set('belongParty', null)
+            avatar.set('timeContract', -1)
+            avatar.set('timeMine', -1)
+            await avatar.save()
+            
+
+        return {
+            kicked: true,
+            message: 'Avatar Kicked'
+        }
+
+
+    } catch (error) {
+        return {
+            kicked: false,
+            message: error.message
+        }
+    }
+
 });

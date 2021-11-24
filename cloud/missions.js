@@ -27,8 +27,8 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
 
     try {
         query_economy.equalTo('reference','reward_per_avatar_party')
-        let price_per_avatar = await query_economy.find()
-        let amountWon = price_per_avatar[0].attributes.price * req.params.qty_avatars
+        let price_per_avatar = await query_economy.first()
+        let amountWon = price_per_avatar.attributes.price * req.params.qty_avatars
 
         const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
         actualUser.set('balanceClaim', actualUser.attributes.balanceClaim + amountWon)
