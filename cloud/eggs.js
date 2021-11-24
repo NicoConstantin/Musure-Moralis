@@ -7,10 +7,11 @@ Moralis.Cloud.define('mint_egg', async (req) => {
     try{
         let actualUser = await query_user.get( req.user.id, { useMasterKey:true } )
         const newEgg = new Egg();
-        newEgg.set('timeHatch', getDate(2,"hours"))
+        newEgg.set('timeHatch', getDate(cooldown_set_time, cooldown_set_type))
         newEgg.set('isHatched', false)
         newEgg.set('owner', actualUser)
         await newEgg.save()
+
         return {
             created:true,
             messsage:"Egg created"
@@ -36,6 +37,7 @@ Moralis.Cloud.define('get_master_egg', async (req) => {
         query_economy.equalTo('reference','egg_price')
         let price_egg = await query_economy.find()
         let mastereggs = await query_egg_master.find()
+        
         return {
             master_eggs : mastereggs,
             price_egg: price_egg[0].attributes.price,

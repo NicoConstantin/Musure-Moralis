@@ -1,3 +1,6 @@
+const cooldown_set_time = 2
+const cooldown_set_type = 'hours'
+
 function getDate (time, time_type) {
     switch (time_type) {
         case 'days':
@@ -16,7 +19,7 @@ function getDate (time, time_type) {
 }
 //ARRAY ORDENADO POR MAYOR DropRate PRIMERO
 function rarityGenerator (array, sucessRate) {
-    let roll = Math.random() * 100 
+    let roll = Math.round(Math.random() * 100 )
     if(array){
         let prevDropRate = 0
         for (let i = 0; i < array.length; i++) {

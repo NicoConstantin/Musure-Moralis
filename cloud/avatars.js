@@ -12,8 +12,11 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         eggToHatch.set( 'isHatched', true )
         await eggToHatch.save()
         const newAvatar = new Avatar();
+        //ACA SE PUEDE HACER EL TIPO DE RAREZA
         newAvatar.set('rarity', 'rarity')
         newAvatar.set('power', 1000)
+        newAvatar.set('timeMine', -1)
+        newAvatar.set('timeContract', -1)
         newAvatar.set('owner', actualUser)
         await newAvatar.save()
     
@@ -43,6 +46,7 @@ Moralis.Cloud.define('put_rename', async (req) => {
             avatar: avatarToRename,
             message: "Name Changed"
         }
+
     } catch (error) {
         return {
             avatar: false,
@@ -54,16 +58,20 @@ Moralis.Cloud.define('put_rename', async (req) => {
 });
 
 Moralis.Cloud.define('put_join_party', async (req) => {
+
     const query_avatar = new Moralis.Query('Avatar');
     const query_party = new Moralis.Query('Party');
+
     try {
         let partyToJoin = await query_party.get(req.params.party_id);
         let avatarToJoin = await query_avatar.get(req.params.avatar_id);
+
         avatarToJoin.set('timeMine', getDate())
         avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'days'))
         avatarToJoin.set('belongParty', partyToJoin)
         partyToJoin.addUnique('avatarsIn',avatarToJoin)
         await avatarToJoin.save()
+
         return {
             joined: true,
             message: "Avatar joined"
@@ -79,13 +87,17 @@ Moralis.Cloud.define('put_join_party', async (req) => {
 });
 
 Moralis.Cloud.define('get_avatar', async (req) => {
+
     const query_avatar = new Moralis.Query('Avatar');
+
     try {
         let avatar = await query_avatar.get(req.params.avatar_id);
+
         return {
             avatar: avatar,
             message: "Avatar info"
         }
+
     } catch (error) {
         return {
             avatar: false,
