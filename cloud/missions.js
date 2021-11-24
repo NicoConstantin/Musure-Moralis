@@ -69,7 +69,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         if(generated.result){
             //acreditar al user
             actualUser.set('balanceClaim', actualUser.attributes.balanceClaim + mission.attributes.reward)
-            let userUpdated = await actualUser.save(null, { useMasterKey:true })
+            await actualUser.save(null, { useMasterKey:true })
 
             return {
                 results:{
@@ -77,7 +77,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
                     roll: generated.roll,
                     reward: mission.attributes.reward,
                     successRate: mission.attributes.successRate,
-                    newBalance: userUpdated.attributes.balanceClaim
+                    newBalance: actualUser.attributes.balanceClaim
                 },
                 message: 'Mission successfully completed'
             }
