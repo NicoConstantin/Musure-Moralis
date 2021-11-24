@@ -23,14 +23,14 @@ function rarityGenerator (array, sucessRate) {
     if(array){
         let prevDropRate = 0
         for (let i = 0; i < array.length; i++) {
-            if(roll <= array[i].dropRate + prevDropRate){
+            if(roll <= array[i].attributes.dropRate + prevDropRate){
                 return {
                     found: array[i],
                     roll
                 }
             }
             else{
-                prevDropRate = prevDropRate + array[i].dropRate
+                prevDropRate = prevDropRate + array[i].attributes.dropRate
             }
             
         }
@@ -41,4 +41,9 @@ function rarityGenerator (array, sucessRate) {
             roll
         }
     }
+}
+
+function powerGenerator (minval, maxval){
+    let roll = Math.round(Math.random() * (maxval - minval) + minval )
+    return roll
 }

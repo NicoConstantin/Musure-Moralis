@@ -3,18 +3,20 @@ const Avatar = Moralis.Object.extend('Avatar');
 Moralis.Cloud.define('mint_avatar', async (req) => {
 
     const query_egg = new Moralis.Query('Egg')
+    const query_egg_master = new Moralis.Query('EGG_MASTER')
 
     try {
         let eggToHatch = await query_egg.get( req.params.egg_id )
+        let dataToRandomizer = await query_egg_master.find()
         
         eggToHatch.set( 'isHatched', true )
         await eggToHatch.save()
         const newAvatar = new Avatar();
-        //ACA SE PUEDE HACER EL TIPO DE RAREZA
-        // rarityGenerator()
-        //
-        newAvatar.set('rarity', 'rarity')
-        newAvatar.set('power', 1000)
+        let generated = rarityGenerator( dataToRandomizer )
+        let power = powerGenerator( generated.found.attributes.minPower, generated.found.attributes.maxPower )
+        
+        newAvatar.set('rarity', generated.found.attributes.rarity)
+        newAvatar.set('power', power)
         newAvatar.set('timeMine', -1)
         newAvatar.set('timeContract', -1)
         newAvatar.set('owner', eggToHatch.attributes.owner)
