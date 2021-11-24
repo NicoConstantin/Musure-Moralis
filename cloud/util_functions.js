@@ -14,3 +14,28 @@ function getDate (time, time_type) {
     }
     
 }
+//ARRAY ORDENADO POR MAYOR DropRate PRIMERO
+function rarityGenerator (array,sucessRate) {
+    let roll = Math.random() * 100 /*<= n*/
+    if(array){
+        let prevDropRate = 0
+        for (let i = 0; i < array.length; i++) {
+            if(roll <= array[i].attributes.dropRate + prevDropRate){
+                return {
+                    found: array[i],
+                    roll
+                }
+            }
+            else{
+                prevDropRate = prevDropRate + array[i].attributes.dropRate
+            }
+            
+        }
+    }
+    else{
+        return {
+            result: roll <= sucessRate,
+            roll
+        }
+    }
+}
