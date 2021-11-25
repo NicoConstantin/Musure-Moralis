@@ -18,32 +18,37 @@ function getDate (time, time_type) {
     
 }
 //ARRAY ORDENADO POR MAYOR DropRate PRIMERO
-function rarityGenerator (array, sucessRate) {
-    let roll = Math.round(Math.random() * 100 )
-    if(array){
-        let prevDropRate = 0
-        for (let i = 0; i < array.length; i++) {
-            if(roll <= array[i].attributes.dropRate + prevDropRate){
-                return {
-                    found: array[i],
-                    roll
-                }
-            }
-            else{
-                prevDropRate = prevDropRate + array[i].attributes.dropRate
-            }
-            
+function getRandomRarity (array) {
+    let roll = Math.floor(Math.random() * (100 + 0 + 1) )
+    let prevDropRate = 0
+
+    for (let i = 0; i < array.length; i++) {
+
+        if(roll <= array[i].attributes.dropRate + prevDropRate){
+            return array[i]
         }
-    }
-    else{
-        return {
-            result: roll <= sucessRate,
-            roll
+
+        else{
+            prevDropRate = prevDropRate + array[i].attributes.dropRate
         }
+        
     }
 }
 
-function powerGenerator (minval, maxval){
-    let roll = Math.round(Math.random() * (maxval - minval) + minval )
+function getRandomNumber (sucessRate){
+    let roll = Math.floor(Math.random() * (100 + 0 + 1) )
+    return {
+        result: roll <= sucessRate,
+        roll
+    }
+}
+
+function getRandomPower (max, min){
+    let roll = Math.floor(Math.random() * (max - min + 1) + min)
     return roll
+}
+
+function getRandomType (array) {
+    let position = Math.floor(Math.random() * (9 + 0 + 1) )
+    return array[position]
 }

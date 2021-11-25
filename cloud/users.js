@@ -3,6 +3,7 @@ Moralis.Cloud.define("get_user", async (req) =>{
     const query_user = new Moralis.Query(Moralis.User)
 
     try {
+        query_user.include(['partyOwn.avatarsIn'])
         let actualUser = await query_user.get(req.user.id, { useMasterKey:true })
 
         return {

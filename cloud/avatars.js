@@ -12,10 +12,10 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         eggToHatch.set( 'isHatched', true )
         await eggToHatch.save()
         const newAvatar = new Avatar();
-        let generated = rarityGenerator( dataToRandomizer )
-        let power = powerGenerator( generated.found.attributes.minPower, generated.found.attributes.maxPower )
+        let rarityFound = getRandomRarity( dataToRandomizer )
+        let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
         
-        newAvatar.set('rarity', generated.found.attributes.rarity)
+        newAvatar.set('rarity', rarityFound.attributes.rarity)
         newAvatar.set('power', power)
         newAvatar.set('timeMine', -1)
         newAvatar.set('timeContract', -1)
@@ -136,6 +136,38 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
     } catch (error) {
         return {
             kicked: false,
+            message: error.message
+        }
+    }
+
+});
+
+Moralis.Cloud.define('delete_avatar', async (req) => {
+    const query_avatar = new Moralis.Query('Avatar');
+
+    try {
+        let avatarToDelete = await query_avatar.get(req.params.avatar_id)
+        
+            let avatar = avatarToDelete
+            if(avatarToDelete.attributes.belongParty){
+                let party = avatarToDelete.attributes.belongParty
+    
+                party.remove('avatarsIn', avatar)
+                await party.save()
+
+            }
+            await avatar.destroy()
+            
+
+        return {
+            deleted: true,
+            message: 'Avatar Deleted'
+        }
+
+
+    } catch (error) {
+        return {
+            deleted: false,
             message: error.message
         }
     }

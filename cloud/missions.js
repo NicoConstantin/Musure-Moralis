@@ -61,7 +61,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         let avatar = await query_avatar.get(req.params.avatar_id)
         let actualUser = await query_user.get(req.user.id, { useMasterKey:true })
 
-        let generated = rarityGenerator(null, mission.attributes.successRate)
+        let generated = getRandomNumber(mission.attributes.successRate)
 
         avatar.set('timeMine',getDate(2,'hours'))
         await avatar.save()
