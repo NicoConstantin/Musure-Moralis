@@ -1,13 +1,12 @@
 const Party = Moralis.Object.extend('Party');
 
-
+//VALIDATED
 Moralis.Cloud.define('patch_party_data', async (req) => {
 
-    const query_user = new Moralis.Query(Moralis.User);
-    let newParty = ""
-    
     try {
-        const actualUser = await query_user.get(req.user.id, { useMasterKey:true });
+
+        let newParty = ""
+        const actualUser = req.user
         
         if(actualUser.attributes.partyOwn){
             newParty = actualUser.attributes.partyOwn
@@ -22,7 +21,8 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
         newParty.set('bio', req.params.bio);
         newParty.set('image',req.params.image);
         newParty.set('owner', actualUser);
-        await newParty.save()
+        newParty.setACL(new Moralis.ACL(actualUser))
+        await newParty.save(null, { useMasterKey:true })
 
         return {
             updated:true,
@@ -35,8 +35,24 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
             message: error.message
         }
     }
+},{
+    fields:{
+        name: {
+            required:false,
+            options: (val)=> {
+                return val.length >= min_length_names && val.length <= max_length_names
+            }
+        },
+        bio: {
+            required:false,
+            options: (val)=> {
+                return val.length >= min_length_bio && val.length <= max_length_bio
+            }
+        }
+    }
 });
 
+//NOT REQUIRE VALIDATION
 Moralis.Cloud.define('get_all_parties', async (req) => {
 
     const query_party = new Moralis.Query('Party');
@@ -44,7 +60,7 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
 
     try {
         query_party.include('owner')
-        let allParties = await query_party.find( { useMasterKey:true } )
+        let allParties = await query_party.find( null, { useMasterKey:true })
         let economy = await query_economy.find()
         let prices_to_join = economy.filter(el=>el.attributes.reference.slice(0,4) === "join")
 
@@ -61,7 +77,7 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
         }
     }
 });
-
+//VALIDATED
 Moralis.Cloud.define('get_party_data', async (req) => {
 
     const query_party = new Moralis.Query('Party');
@@ -95,6 +111,13 @@ Moralis.Cloud.define('get_party_data', async (req) => {
         return {
             party: false,
             message: error.message
+        }
+    }
+},{
+    fields:{
+        party_id:{
+            ...validation_id,
+            error:"party_id is not passed or has an error"
         }
     }
 });

@@ -1,5 +1,5 @@
 const Mission = Moralis.Object.extend('MISSION_MASTER');
-
+//NOT REQUIRE VALIDATION
 Moralis.Cloud.define('get_missions', async (req) => {
 
     const query_mission_master = new Moralis.Query('MISSION_MASTER');
@@ -19,24 +19,35 @@ Moralis.Cloud.define('get_missions', async (req) => {
         }
     }
 });
-
+//VALIDATED
 Moralis.Cloud.define('do_creator_quest', async (req) => {
 
     const query_economy = new Moralis.Query('ECONOMY');
-    const query_user = new Moralis.Query(Moralis.User);
 
     try {
+        const user = req.user;
+
+        if(!user.attributes.isValidated){
+            return "You must be validated as a creator to do this quest"
+        }
+        if(!user.attributes.partyOwn ){
+            return "You must have a party to do this quest"
+        }
+        if( user.attributes.timeQuest < getDate()){
+            return `You have to wait ${Math.round((user.attributes.timeQuest - getDate())/60)} minutes to do this mission`
+        }
+
         query_economy.equalTo('reference','reward_per_avatar_party')
         let price_per_avatar = await query_economy.first()
+
         let amountWon = price_per_avatar.attributes.price * req.params.qty_avatars
 
-        const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
-        actualUser.set('balanceClaim', actualUser.attributes.balanceClaim + amountWon)
-        actualUser.set('timeQuest', getDate(cooldown_set_time, cooldown_set_type))
-        await actualUser.save(null, { useMasterKey:true })
+        user.set('balanceClaim', user.attributes.balanceClaim + amountWon)
+        user.set('timeQuest', getDate(cooldown_set_time, cooldown_set_type))
+        await user.save(null, { useMasterKey:true })
 
         return {
-            newBalance: actualUser.attributes.balanceClaim,
+            newBalance: user.attributes.balanceClaim,
             message: "Creator quest done"
         }
         
@@ -48,28 +59,43 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
         }
         
     }
+},{
+    fields:{
+        qty_avatars:{
+            required: true,
+            type: Number,
+            options: (val)=>{
+                return val>0
+            },
+            error: "You must have avatars on your party"
+        }
+    }
 });
 
+//VALIDATED
 Moralis.Cloud.define('do_crew_quest', async (req) => {
 
     const query_mission = new Moralis.Query('MISSION_MASTER');
     const query_avatar = new Moralis.Query('Avatar');
-    const query_user = new Moralis.Query(Moralis.User);
     
     try {
+        
+        const user = req.user
         let mission = await query_mission.get(req.params.mission_id)
         let avatar = await query_avatar.get(req.params.avatar_id)
-        let actualUser = await query_user.get(req.user.id, { useMasterKey:true })
+
+        if(avatar.attributes.timeMine < getDate()){
+            return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
+        }
 
         let generated = getRandomNumber(mission.attributes.successRate)
 
         avatar.set('timeMine',getDate(2,'hours'))
-        await avatar.save()
+        await avatar.save(null, { useMasterKey:true })
     
         if(generated.result){
-            //acreditar al user
-            actualUser.set('balanceClaim', actualUser.attributes.balanceClaim + mission.attributes.reward)
-            await actualUser.save(null, { useMasterKey:true })
+            user.set('balanceClaim', user.attributes.balanceClaim + mission.attributes.reward)
+            await user.save(null, { useMasterKey:true })
 
             return {
                 results:{
@@ -77,7 +103,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
                     roll: generated.roll,
                     reward: mission.attributes.reward,
                     successRate: mission.attributes.successRate,
-                    newBalance: actualUser.attributes.balanceClaim
+                    newBalance: user.attributes.balanceClaim
                 },
                 message: 'Mission successfully completed'
             }
@@ -90,7 +116,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
                     roll: generated.roll,
                     reward: mission.attributes.reward,
                     successRate: mission.attributes.successRate,
-                    newBalance: actualUser.attributes.balanceClaim
+                    newBalance: user.attributes.balanceClaim
                 },
                 message: 'Mission failed'
             }
@@ -101,6 +127,17 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         return {
             results:false,
             message: error.message
+        }
+    }
+},{
+    fields:{
+        avatar_id:{
+            ...validation_id,
+            error:"avatar_id is not passed or has an error"
+        },
+        mission_id:{
+            ...validation_id,
+            error:"mission_id is not passed or has an error"
         }
     }
 });

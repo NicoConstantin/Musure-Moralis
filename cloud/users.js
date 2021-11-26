@@ -19,7 +19,7 @@ Moralis.Cloud.define("get_user", async (req) =>{
         }
     }
 })
-
+//VALIDATED MISS TO WORK WITH SOCIAL NETWORKS TO PARSE INTO VALID LINKS OR INVESTIGATE SDK's
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
     const query_user = new Moralis.Query(Moralis.User)
@@ -47,13 +47,27 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
     }
     
+},{
+    fields:{
+        name: {
+            required:false,
+            options: (val)=> {
+                return val.length >= min_length_names && val.length <= max_length_names
+            }
+        },
+        bio: {
+            required:false,
+            options: (val)=> {
+                return val.length >= min_length_bio && val.length <= max_length_bio
+            }
+        }
+    }
 });
-
+//NOT REQUIRE VALIDATION
 Moralis.Cloud.define('claim', async (req) => {
-    const query_user = new Moralis.Query(Moralis.User)
 
     try {
-        const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
+        const actualUser = req.user
         let balance_claim = actualUser.attributes.balanceClaim;
         actualUser.set('balanceClaim', 0)
         await actualUser.save(null, { useMasterKey:true })

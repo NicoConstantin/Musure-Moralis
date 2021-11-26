@@ -13,18 +13,18 @@ Moralis.Cloud.job("kick_avatars_expired", async (req) =>  {
         query_avatars.greaterThan('timeContract', -1)
         query_avatars.exists('belongParty')
         query_avatars.include('belongParty')
-        let avatarsExpired = await query_avatars.find()
+        let avatarsExpired = await query_avatars.find(null, {useMasterKey: true})
         
         for (let i = 0; i < avatarsExpired.length; i++) {
             let avatar = avatarsExpired[i]
             let party = avatar.attributes.belongParty
 
             party.remove('avatarsIn', avatar)
-            await party.save()
+            await party.save(null, {useMasterKey: true})
             avatar.set('belongParty', null)
             avatar.set('timeContract', -1)
             avatar.set('timeMine', -1)
-            await avatar.save()
+            await avatar.save(null, {useMasterKey: true})
             
         }
         message('Avatars kicked')

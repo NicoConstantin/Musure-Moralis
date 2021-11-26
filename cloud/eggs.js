@@ -1,5 +1,5 @@
 const Egg = Moralis.Object.extend('Egg');
-
+//VALIDATED
 Moralis.Cloud.define('mint_egg', async (req) => {
     
     const query_user = new Moralis.Query(Moralis.User)
@@ -10,7 +10,8 @@ Moralis.Cloud.define('mint_egg', async (req) => {
         newEgg.set('timeHatch', getDate(cooldown_set_time, cooldown_set_type))
         newEgg.set('isHatched', false)
         newEgg.set('owner', actualUser)
-        await newEgg.save()
+        newEgg.setACL(new Moralis.ACL(req.user))
+        await newEgg.save(null, { useMasterKey:true })
 
         return {
             created:true,
@@ -25,9 +26,8 @@ Moralis.Cloud.define('mint_egg', async (req) => {
         }
     }
 
-    //LUEGO MANEJAR EL TEMA DINERO DEL USUARIO 
 });
-
+//NOT REQUIRE VALIDATION
 Moralis.Cloud.define('get_master_egg', async (req) => {
 
     const query_egg_master = new Moralis.Query('EGG_MASTER');
