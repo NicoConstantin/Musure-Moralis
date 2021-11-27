@@ -13,7 +13,7 @@ Moralis.Cloud.job("kick_avatars_expired", async (req) =>  {
         query_avatars.greaterThan('timeContract', -1)
         query_avatars.exists('belongParty')
         query_avatars.include('belongParty')
-        let avatarsExpired = await query_avatars.find(null, {useMasterKey: true})
+        let avatarsExpired = await query_avatars.find({useMasterKey: true})
         
         for (let i = 0; i < avatarsExpired.length; i++) {
             let avatar = avatarsExpired[i]

@@ -72,8 +72,8 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
 
     try {
         
-        let avatar = await query_avatar.get(req.params.avatar_id);
-        let accessory = await query_accessory.get(req.params.accessory_id);
+        let avatar = await query_avatar.get(req.params.avatar_id, {useMasterKey:true});
+        let accessory = await query_accessory.get(req.params.accessory_id, {useMasterKey:true});
         let typeAcc = accessory.attributes.type.toLowerCase()
 
         if(avatar.attributes.owner.id !== accessory.attributes.owner.id) {
@@ -89,7 +89,7 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
             accessory.set('equippedOn', avatar)
             avatar.set(typeAcc, accessory)
             avatar.set('power', avatar.attributes.power + accessory.attributes.power)
-            await avatar.save()
+            await avatar.save(null, {useMasterKey:true})
     
             return {
                equipped: true,
@@ -125,8 +125,8 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
 
     try {
 
-        let avatar = await query_avatar.get(req.params.avatar_id);
-        let accessory = await query_accessory.get(req.params.accessory_id);
+        let avatar = await query_avatar.get(req.params.avatar_id, {useMasterKey:true});
+        let accessory = await query_accessory.get(req.params.accessory_id, {useMasterKey:true});
         let typeAcc = accessory.attributes.type.toLowerCase()
 
         if(avatar.attributes.owner.id !== accessory.attributes.owner.id) {
@@ -139,7 +139,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
             accessory.set('equippedOn', null)
             avatar.set(typeAcc, null)
             avatar.set('power', avatar.attributes.power - accessory.attributes.power)
-            await avatar.save()
+            await avatar.save(null, {useMasterKey:true})
     
             return {
                unequipped: true,
@@ -181,7 +181,7 @@ Moralis.Cloud.define('get_accessories', async (req) => {
 
     try {
         query_accessories.equalTo('owner', req.user)
-        let rawAccessories = await query_accessories.find()
+        let rawAccessories = await query_accessories.find({useMasterKey:true})
         let accessoriesUser = {}
 
         for (let i = 0; i < rawAccessories.length; i++) {

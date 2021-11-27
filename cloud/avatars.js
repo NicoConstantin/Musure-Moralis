@@ -9,12 +9,12 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         let eggToHatch = await query_egg.get( req.params.egg_id, {useMasterKey:true} )
         let dataToRandomizer = await query_egg_master.find()
         
-        if(!eggToHatch.attributes.isHatched){
+        if(eggToHatch.attributes.isHatched){
             return 'That egg is already hatched'
         }
 
         eggToHatch.set('isHatched', true )
-        await eggToHatch.save()
+        await eggToHatch.save(null, {useMasterKey:true})
         const newAvatar = new Avatar();
         let rarityFound = getRandomRarity( dataToRandomizer )
         let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
@@ -29,6 +29,7 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
     
         return {
             created:true,
+            avatar: newAvatar,
             message:"Avatar created"
         }
         
@@ -204,14 +205,12 @@ Moralis.Cloud.define('delete_avatar', async (req) => {
     try {
         let avatarToDelete = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
         query_accessories.equalTo('equippedOn', req.params.avatar_id)
-        let accessoriesEquiped = await query_accessories.find(null, {useMasterKey:true})
-
-            let avatar = avatarToDelete
+        let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
 
             if(avatarToDelete.attributes.belongParty){
                 let party = avatarToDelete.attributes.belongParty
     
-                party.remove('avatarsIn', avatar)
+                party.remove('avatarsIn', avatarToDelete)
                 await party.save(null, {useMasterKey:true})
 
             }
@@ -223,7 +222,7 @@ Moralis.Cloud.define('delete_avatar', async (req) => {
                 })
             }
 
-            await avatar.destroy(null, {useMasterKey:true})
+            await avatarToDelete.destroy({useMasterKey:true})
             
 
         return {
@@ -239,4 +238,11 @@ Moralis.Cloud.define('delete_avatar', async (req) => {
         }
     }
 
+},{
+    fields:{
+        avatar_id: {
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        }
+    }
 });

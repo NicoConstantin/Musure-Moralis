@@ -7,7 +7,9 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
 
         let newParty = ""
         const actualUser = req.user
-        
+        if(!req.user.attributes.isValidated){
+            return "You must be validated to create a party"
+        }
         if(actualUser.attributes.partyOwn){
             newParty = actualUser.attributes.partyOwn
         }
@@ -60,7 +62,7 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
 
     try {
         query_party.include('owner')
-        let allParties = await query_party.find( null, { useMasterKey:true })
+        let allParties = await query_party.find({ useMasterKey:true })
         let economy = await query_economy.find()
         let prices_to_join = economy.filter(el=>el.attributes.reference.slice(0,4) === "join")
 

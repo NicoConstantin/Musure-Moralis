@@ -81,16 +81,16 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
     try {
         
         const user = req.user
-        let mission = await query_mission.get(req.params.mission_id)
-        let avatar = await query_avatar.get(req.params.avatar_id)
+        let mission = await query_mission.get(req.params.mission_id, {useMasterKey:true})
+        let avatar = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
 
-        if(avatar.attributes.timeMine < getDate()){
+        if(avatar.attributes.timeMine > getDate()){
             return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
         }
 
         let generated = getRandomNumber(mission.attributes.successRate)
 
-        avatar.set('timeMine',getDate(2,'hours'))
+        avatar.set('timeMine',getDate(cooldown_set_time, cooldown_set_type))
         await avatar.save(null, { useMasterKey:true })
     
         if(generated.result){
