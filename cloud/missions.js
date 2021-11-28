@@ -33,7 +33,7 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
         if(!user.attributes.partyOwn ){
             return "You must have a party to do this quest"
         }
-        if( user.attributes.timeQuest < getDate()){
+        if( user.attributes.timeQuest > getDate()){
             return `You have to wait ${Math.round((user.attributes.timeQuest - getDate())/60)} minutes to do this mission`
         }
 
@@ -86,6 +86,10 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
 
         if(avatar.attributes.timeMine > getDate()){
             return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
+        }
+
+        if(!avatar.attributes.belongParty){
+            return 'You must be in a party to do this quest :('
         }
 
         let generated = getRandomNumber(mission.attributes.successRate)

@@ -204,7 +204,7 @@ Moralis.Cloud.define('delete_avatar', async (req) => {
 
     try {
         let avatarToDelete = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
-        query_accessories.equalTo('equippedOn', req.params.avatar_id)
+        query_accessories.equalTo('equippedOn', avatarToDelete)
         let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
 
             if(avatarToDelete.attributes.belongParty){
