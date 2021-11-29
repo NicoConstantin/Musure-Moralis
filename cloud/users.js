@@ -73,13 +73,13 @@ Moralis.Cloud.define('claim', async (req) => {
         await actualUser.save(null, { useMasterKey:true })
 
         return {
-            balance_claim: balance_claim,
+            claim: balance_claim,
             message: "Claim balance cleared"
         }
 
     } catch (error) {
         return {
-            balance_claim: false,
+            claim: false,
             message: error.message
         }
     }
