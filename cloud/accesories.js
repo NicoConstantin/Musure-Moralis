@@ -83,6 +83,12 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
                 message: "Avatar already have that kind of item equipped"
             }
         }
+        if(accessory.attributes.equippedOn){
+            return {
+                equipped:false,
+                message: 'That accessory is equipped in another avatar'
+            }
+        }
         else{
             accessory.set('equippedOn', avatar)
             avatar.set(typeAcc, accessory)
@@ -175,6 +181,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
 });
 //NOT REQUIRE VALIDATION
 Moralis.Cloud.define('get_accessories', async (req) => {
+
     const query_accessories = new Moralis.Query('Accessory')
 
     try {
