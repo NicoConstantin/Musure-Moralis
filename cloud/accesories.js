@@ -66,6 +66,7 @@ Moralis.Cloud.define('mint_accessory', async (req) => {
 });
 //VALIDATED
 Moralis.Cloud.define('equip_accessory', async (req) => {
+    
     const query_accessory = new Moralis.Query('Accessory');
     const query_avatar = new Moralis.Query('Avatar');
 
@@ -74,6 +75,7 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
         let avatar = await query_avatar.get(req.params.avatar_id, {useMasterKey:true});
         let accessory = await query_accessory.get(req.params.accessory_id, {useMasterKey:true});
         let typeAcc = accessory.attributes.type.toLowerCase()
+
         if(avatar.attributes.owner.id !== accessory.attributes.owner.id) {
             return "Not allowed"
         }
@@ -91,6 +93,7 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
         }
         else{
             accessory.set('equippedOn', avatar)
+            await accessory.save(null, {useMasterKey:true})
             avatar.set(typeAcc, accessory)
             avatar.set('power', avatar.attributes.power + accessory.attributes.power)
             await avatar.save(null, {useMasterKey:true})
@@ -141,6 +144,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
         }
         else{
             accessory.set('equippedOn', null)
+            await accessory.save(null, {useMasterKey:true})
             avatar.set(typeAcc, null)
             avatar.set('power', avatar.attributes.power - accessory.attributes.power)
             await avatar.save(null, {useMasterKey:true})
@@ -180,6 +184,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
     } 
 });
 //NOT REQUIRE VALIDATION
+
 Moralis.Cloud.define('get_accessories', async (req) => {
 
     const query_accessories = new Moralis.Query('Accessory')
