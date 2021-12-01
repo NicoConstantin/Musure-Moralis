@@ -5,6 +5,7 @@ Moralis.Cloud.define('get_missions', async (req) => {
     const query_mission_master = new Moralis.Query('MISSION_MASTER');
 
     try {
+        query_mission_master.ascending('reqPower')
         let missions = await query_mission_master.find()
 
         return{
