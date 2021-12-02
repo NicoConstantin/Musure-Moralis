@@ -1,5 +1,5 @@
 
-Moralis.Cloud.define('economy', async (req) => {
+Moralis.Cloud.define('get_economy', async (req) => {
 
     const query_economy = new Moralis.Query('ECONOMY');
 
