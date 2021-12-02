@@ -9,6 +9,7 @@ Moralis.Cloud.define('get_crew', async (req) => {
 
         query_avatar.equalTo('owner', req.user);
         query_avatar.descending('createdAt')
+        query_avatar.include('belongParty')
         let avatarsUser = await query_avatar.find({useMasterKey:true})
         
         query_egg.equalTo('owner', req.user)
