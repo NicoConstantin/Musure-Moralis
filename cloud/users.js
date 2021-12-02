@@ -30,9 +30,15 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         actualUser.set('creatorName', req.params.name);
         actualUser.set('creatorBio', req.params.bio);
         actualUser.set('creatorImg',req.params.image);
-        actualUser.set('creatorTwitch', req.params.twitch);
-        actualUser.set('creatorYoutube', req.params.youtube);
-        actualUser.set('creatorInstagram', req.params.instagram);
+        if(req.params.twitch){
+            actualUser.set('creatorTwitch', req.params.twitch);
+        }
+        if(req.params.youtube){
+            actualUser.set('creatorYoutube', req.params.youtube);
+        }
+        if(req.params.instagram){
+            actualUser.set('creatorInstagram', req.params.instagram);
+        }
         await actualUser.save(null, { useMasterKey:true });
 
         return {
