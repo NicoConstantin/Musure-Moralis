@@ -28,6 +28,7 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
 
         return {
             updated:true,
+            party: newParty,
             message: "Party Updated"
         }
 
