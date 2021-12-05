@@ -32,7 +32,7 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
         if(!user.attributes.isValidated){
             return "You must be validated as a creator to do this quest"
         }
-        if(!user.attributes.partyOwn ){
+        if(!user.attributes.partyOwn || user.attributes.timeContract < getDate() ){
             return "You must have a party to do this quest"
         }
         if( user.attributes.timeQuest > getDate()){
