@@ -1,5 +1,5 @@
-const cooldown_set_time = 10
-const cooldown_set_type = 'seconds'
+const cooldown_set_time = 1
+const cooldown_set_type = 'hours'
 
 const min_length_names = 3;
 const max_length_names = 12;
