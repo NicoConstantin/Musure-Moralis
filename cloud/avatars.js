@@ -235,6 +235,14 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
             message: error.message
         }
     }
+},{
+    fields:{
+        price: validation_price,
+        avatar_id:{
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+    } 
 });
 
 Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
@@ -259,6 +267,13 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
             message: error.message
         }
     }
+},{
+    fields:{
+        avatar_id:{
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+    } 
 });
 
 //REMOVE THIS ENDPOINT ON PRODUCTION

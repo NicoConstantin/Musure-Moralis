@@ -2,7 +2,7 @@ const cooldown_set_time = 1
 const cooldown_set_type = 'seconds'
 
 const min_length_names = 3;
-const max_length_names = 15;
+const max_length_names = 12;
 
 const min_length_bio = 1;
 const max_length_bio = 70;
@@ -22,6 +22,25 @@ let validation_length_word = {
         return val.length >= min_length_names && val.length <= max_length_names
     },
     error:"name doesn’t have the required length. Must be from 3 to 12 characters."
+}
+
+let validation_sort = {
+    required: false,
+    type: String,
+    options: val=>{
+        return val === 'ascending' || val === 'descending'
+    },
+    error: 'sortings must be equal to ascending or descending'
+}
+
+let validation_number = {
+    required:false,
+    type: Number,
+    options: val=>{
+        return val > 0
+    },
+    error: 'you are sending a parameter that must be a positive number and its not'
+    
 }
 
 let validation_price = {
