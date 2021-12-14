@@ -1,55 +1,75 @@
+const logger = Moralis.Cloud.getLogger();
+
 Moralis.Cloud.define('get_marketplace', async (req) => {
+
+    const { filter, sort, page, myListing, type } = req.params
+
+    //VALIDATIONS OF NON REQUIRED FIELDS
+    for (const prop in filter) {
+        if(typeof(filter[prop]) !== 'number'){
+            return 'a filter property is not a number'
+        }
+    }
+
+    for (const prop in sort) {
+        if(sort[prop] !== 'ascending' && sort[prop] !== 'descending'){
+            return 'sort properties must be equal to ascending or descending'
+        }
+    }
 
     let query_items = ""
 
-    if (request.type === 'avatar'){
+    if (type === 'avatar'){
         query_items = new Moralis.Query('Avatar');
     }
-    if (request.type === 'accessory'){
+    if (type === 'accessory'){
         query_items = new Moralis.Query('Accessory');
     }
 
-    const request = req.params
 
     try {
-        //ONLY ON SALE
+
         query_items.equalTo('onSale', true)
-        //ONLY USER ITEMS
-        if (request.myListing){
+
+        if (myListing){
             query_items.equalTo('owner', req.user)
         }
-        //FILTERING
-        if (request.filterRarity) {
-            query_items.equalTo('rarityNumber', request.filterRarity)
+
+        if (filter){
+            if (filter.rarity) {
+                query_items.equalTo('rarityNumber', filter.rarity)
+            }
+            if (filter.powerMin) {
+                query_items.greaterThanOrEqualTo('power', filter.powerMin)
+            }
+            if (filter.powerMax) {
+                query_items.lessThanOrEqualTo('power', filter.powerMax)
+            }
+            if (filter.priceMin) {
+                query_items.greaterThanOrEqualTo('price', filter.priceMin)
+            }
+            if (filter.priceMax) {
+                query_items.lessThanOrEqualTo('price', filter.priceMax)
+            }
         }
-        if (request.filterPowerMin) {
-            query_items.greaterThanOrEqualTo('power', request.filterPowerMin)
+
+        if (sort){
+            if(sort.rarity){
+                query_items[sort.rarity]('rarityNumber')
+            }
+            if(sort.price){
+                query_items[sort.price]('price')
+            }
+            if(sort.power){
+                query_items[sort.power]('power')
+            }
+            if(sort.publishedTime){
+                query_items[sort.publishedTime]('publishedTime')
+            }
         }
-        if (request.filterPowerMax) {
-            query_items.lessThanOrEqualTo('power', request.filterPowerMax)
-        }
-        if (request.filterPriceMin) {
-            query_items.greaterThanOrEqualTo('price', request.filterPriceMin)
-        }
-        if (request.filterPriceMax) {
-            query_items.lessThanOrEqualTo('price', request.filterPriceMax)
-        }
-        //SORTING
-        if(request.sortRarity){
-            query_items[request.sortRarity]('rarityNumber')
-        }
-        if(request.sortPrice){
-            query_items[request.sortPrice]('price')
-        }
-        if(request.sortPower){
-            query_items[request.sortPower]('power')
-        }
-        if(request.sortPublishedTime){
-            query_items[request.sortPublishedTime]('publishedTime')
-        }
-        //PAGINATING
-        if(request.page){
-            query_items.skip( request.page * 60 )
+
+        if(page){
+            query_items.skip( page * 60 )
         }
 
         query_items.limit(60)
@@ -70,23 +90,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     }
 },{
     fields:{
-        filterRarity: validation_number,
-        filterPowerMin: validation_number,
-        filterPowerMax: validation_number,
-        filterPriceMin: validation_number,
-        filterPriceMax: validation_number,
-        sortRarity: validation_sort,
-        sortPrice: validation_sort,
-        sortPower: validation_sort,
-        sortPublishedTime: validation_sort,
-        page:{
-            required: false,
-            type: Number,
-            options: val=>{
-                return val >= 1
-            },
-            error: 'page must be a number greater than one'
-        },
         type:{
             required: true,
             type: String,
@@ -94,12 +97,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
                 return val === 'avatar' || val === 'accessory'
             },
             error: 'type is required and must be equal to avatar or accessory'
-        },
-        myListing:{
-            required: false,
-            type: Boolean,
-            error: 'mylisting must be a boolean'
         }
-
     }
 });

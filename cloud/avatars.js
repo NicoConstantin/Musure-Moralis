@@ -257,13 +257,13 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
         await avatarToSell.save(null, {useMasterKey:true})
 
         return {
-            onSale: true,
+            removed: true,
             message: 'Avatar was successfully removed from sale'
         }
 
     } catch (error) {
         return {
-            onSale: false,
+            removed: false,
             message: error.message
         }
     }

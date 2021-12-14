@@ -3,25 +3,39 @@ const Party = Moralis.Object.extend('Party');
 //VALIDATED
 Moralis.Cloud.define('patch_party_data', async (req) => {
 
-    try {
+    const {name, bio, image} = req.params;
+    const actualUser = req.user
+    let newParty = ""
 
-        let newParty = ""
-        const actualUser = req.user
+    try {
+        //VALIDATING NOT REQUIRED FIELDS
+        if(name.length < min_length_names || name.length > max_length_names){
+            return `name must be a string and must be between ${min_length_names} and ${max_length_names} long`
+        }
+        if(bio.length < min_length_bio || bio.length > max_length_bio){
+            return `bio must be a string and must be between ${min_length_bio} and ${max_length_bio} long`
+        }
+        //MISSING VALIDATION OF IMAGE, NEED TO LOGG typeof(image)
+
+        //VALIDATING CONTEXT
         if(!req.user.attributes.isValidated){
             return "You must be validated to create a party"
         }
         if(actualUser.attributes.partyOwn){
             newParty = actualUser.attributes.partyOwn
         }
+
+        //CREATING A NEW PARTY
         else{
             newParty = new Party()
             actualUser.set('partyOwn', newParty)
             await actualUser.save(null, { useMasterKey:true })
         }
 
-        newParty.set('name', req.params.name);
-        newParty.set('bio', req.params.bio);
-        newParty.set('image',req.params.image);
+        //SETTING FIELDS
+        newParty.set('name', name);
+        newParty.set('bio', bio);
+        newParty.set('image', image);
         newParty.set('owner', actualUser);
         newParty.setACL(new Moralis.ACL(actualUser))
         await newParty.save(null, { useMasterKey:true })
@@ -33,30 +47,14 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
         }
 
     } catch (error) {
-        return {
-            updated:false,
-            message: error.message
-        }
+        return error.message
     }
 },{
-    fields:{
-        name: {
-            required:false,
-            options: (val)=> {
-                return val.length >= min_length_names && val.length <= max_length_names
-            }
-        },
-        bio: {
-            required:false,
-            options: (val)=> {
-                return val.length >= min_length_bio && val.length <= max_length_bio
-            }
-        }
-    }
+    requireUser: true
 });
 
 //NOT REQUIRE VALIDATION
-Moralis.Cloud.define('get_all_parties', async (req) => {
+Moralis.Cloud.define('get_all_parties', async () => {
 
     const query_party = new Moralis.Query('Party');
     const query_economy = new Moralis.Query('ECONOMY');
@@ -74,24 +72,25 @@ Moralis.Cloud.define('get_all_parties', async (req) => {
         }
         
     } catch (error) {
-        return {
-            parties: false,
-            message: error.message
-        }
+        return error.message
     }
+},{
+    requireUser: true
 });
+
 //VALIDATED
 Moralis.Cloud.define('get_party_data', async (req) => {
 
+    const {party_id, price} = req.params;
     const query_party = new Moralis.Query('Party');
     const query_economy = new Moralis.Query('ECONOMY');
 
     try {
         query_party.include('owner')
         query_party.include('avatarsIn')
-        let party = await query_party.get(req.params.party_id, { useMasterKey:true } )
+        let party = await query_party.get(party_id, { useMasterKey:true } )
 
-        if(req.params.price){
+        if(price){
             query_economy.equalTo('reference','reward_per_avatar_party')
             let price_per_avatar = await query_economy.first()
 
@@ -111,10 +110,7 @@ Moralis.Cloud.define('get_party_data', async (req) => {
         }
 
     } catch (error) {
-        return {
-            party: false,
-            message: error.message
-        }
+        return error.message
     }
 },{
     fields:{
@@ -122,5 +118,6 @@ Moralis.Cloud.define('get_party_data', async (req) => {
             ...validation_id,
             error:"party_id is not passed or has an error"
         }
-    }
+    },
+    requireUser: true
 });

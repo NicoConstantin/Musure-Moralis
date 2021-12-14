@@ -24,25 +24,6 @@ let validation_length_word = {
     error:"name doesn’t have the required length. Must be from 3 to 12 characters."
 }
 
-let validation_sort = {
-    required: false,
-    type: String,
-    options: val=>{
-        return val === 'ascending' || val === 'descending'
-    },
-    error: 'sortings must be equal to ascending or descending'
-}
-
-let validation_number = {
-    required:false,
-    type: Number,
-    options: val=>{
-        return val > 0
-    },
-    error: 'you are sending a parameter that must be a positive number and its not'
-    
-}
-
 let validation_price = {
     required: true,
     type: Number,

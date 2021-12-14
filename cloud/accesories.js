@@ -250,7 +250,7 @@ Moralis.Cloud.define('put_onsale_accessory', async (req) => {
     } 
 });
 //VALIDATED
-Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
+Moralis.Cloud.define('kick_onsale_accessory', async (req) => {
     const query_accessory = new Moralis.Query('Accessory');
     
     try {
@@ -262,13 +262,13 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
         await accessoryToSell.save(null, {useMasterKey:true})
 
         return {
-            onSale: true,
+            removed: true,
             message: 'Accessory was successfully removed from sale'
         }
 
     } catch (error) {
         return {
-            onSale: false,
+            removed: false,
             message: error.message
         }
     }
