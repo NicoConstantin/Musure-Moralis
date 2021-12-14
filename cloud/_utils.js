@@ -1,5 +1,5 @@
-const cooldown_set_time = 1
-const cooldown_set_type = 'seconds'
+const cooldown_set_time = 1;
+const cooldown_set_type = 'second';
 
 const min_length_names = 3;
 const max_length_names = 12;
@@ -15,15 +15,6 @@ let validation_id = {
     },
 }
 
-let validation_length_word = {
-    required:true,
-    type:String,
-    options: (val) => {
-        return val.length >= min_length_names && val.length <= max_length_names
-    },
-    error:"name doesn’t have the required length. Must be from 3 to 12 characters."
-}
-
 let validation_price = {
     required: true,
     type: Number,
@@ -35,16 +26,16 @@ let validation_price = {
 
 function getDate (time, time_type) {
     switch (time_type) {
-        case 'days':
+        case 'day':
             return Math.floor( Date.now() / 1000) + (time * 86400);
 
-        case 'hours':
+        case 'hour':
             return Math.floor( Date.now() / 1000) + (time * 3600)
 
-        case 'minutes':
+        case 'minute':
             return Math.floor( Date.now() / 1000) + (time * 60)
 
-        case 'seconds':
+        case 'second':
             return Math.floor( Date.now() / 1000) + time
         
         default:
@@ -52,6 +43,7 @@ function getDate (time, time_type) {
     }
     
 }
+
 //ARRAY ORDENADO POR MAYOR DropRate PRIMERO
 function getRandomRarity (array) {
     let roll = Math.floor(Math.random() * (100 + 0 + 1) )

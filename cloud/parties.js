@@ -53,7 +53,7 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
     requireUser: true
 });
 
-//NOT REQUIRE VALIDATION
+//VALIDATED
 Moralis.Cloud.define('get_all_parties', async () => {
 
     const query_party = new Moralis.Query('Party');

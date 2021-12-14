@@ -1,3 +1,4 @@
+//VALIDATED
 Moralis.Cloud.define("get_user", async (req) =>{
 
     const query_user = new Moralis.Query(Moralis.User)
@@ -10,35 +11,48 @@ Moralis.Cloud.define("get_user", async (req) =>{
             user: actualUser,
             message: "User Info"
         }
-        //FALTA MANDAR TOKENS
 
     } catch (error) {
-        return {
-            user: actualUser,
-            message: error.message
-        }
+        return error.message
     }
+},{
+    requireUser: true
 })
-//VALIDATED MISS TO WORK WITH SOCIAL NETWORKS TO PARSE INTO VALID LINKS OR INVESTIGATE SDK's
+
+//VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
+    const {name, bio, image, twitch, youtube, instagram} = req.params;
+    
     const query_user = new Moralis.Query(Moralis.User)
 
     try {
         const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
 
-        actualUser.set('creatorName', req.params.name);
-        actualUser.set('creatorBio', req.params.bio);
-        actualUser.set('creatorImg',req.params.image);
-        if(req.params.twitch){
-            actualUser.set('creatorTwitch', req.params.twitch);
+        //VALIDATING NOT REQUIRED FIELDS
+        if(name.length < min_length_names || name.length > max_length_names){
+            return `name must be a string and must be between ${min_length_names} and ${max_length_names} long`
         }
-        if(req.params.youtube){
-            actualUser.set('creatorYoutube', req.params.youtube);
+        if(bio.length < min_length_bio || bio.length > max_length_bio){
+            return `bio must be a string and must be between ${min_length_bio} and ${max_length_bio} long`
         }
-        if(req.params.instagram){
-            actualUser.set('creatorInstagram', req.params.instagram);
+        //MISSING VALIDATION OF IMAGE, NEED TO LOGG typeof(image)
+
+        //VALIDATING IF SOCIAL NETWORKS WERE SENDED
+        if(twitch){
+            actualUser.set('creatorTwitch', twitch);
         }
+        if(youtube){
+            actualUser.set('creatorYoutube', youtube);
+        }
+        if(instagram){
+            actualUser.set('creatorInstagram', instagram);
+        }
+        //SETTING FIELDS
+        actualUser.set('creatorName', name);
+        actualUser.set('creatorBio', bio);
+        actualUser.set('creatorImg', image);
+
         await actualUser.save(null, { useMasterKey:true });
 
         return {
@@ -47,46 +61,39 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
         
     } catch (error) {
-        return {
-            updated: false,
-            message: error.message
-        }
+        return error.message
     }
     
 },{
-    fields:{
-        name: {
-            required:false,
-            options: (val)=> {
-                return val.length >= min_length_names && val.length <= max_length_names
-            }
-        },
-        bio: {
-            required:false,
-            options: (val)=> {
-                return val.length >= min_length_bio && val.length <= max_length_bio
-            }
-        }
-    }
+    requireUser: true
 });
-//NOT REQUIRE VALIDATION
+
+//VALIDATED
 Moralis.Cloud.define('claim', async (req) => {
 
-    try {
-        const actualUser = req.user
-        let balance_claim = actualUser.attributes.balanceClaim;
-        actualUser.set('balanceClaim', 0)
-        await actualUser.save(null, { useMasterKey:true })
+    const actualUser = req.user;
 
-        return {
-            claim: balance_claim,
-            message: "Claim balance cleared"
+    try {
+        let balance_claim = actualUser.attributes.balanceClaim;
+
+        if(balance_claim > 0){
+
+            actualUser.set('balanceClaim', 0)
+            await actualUser.save(null, { useMasterKey:true })
+    
+            return {
+                claim: balance_claim,
+                message: "Claim balance cleared"
+            }
+        }
+
+        if(balance_claim === 0){
+            return 'you cannot claim anything if your balance is empty'
         }
 
     } catch (error) {
-        return {
-            claim: false,
-            message: error.message
-        }
+        return error.message
     }
+},{
+    requireUser: true
 });

@@ -79,7 +79,14 @@ Moralis.Cloud.define('put_rename', async (req) => {
             ...validation_id,
             error:"avatar_id is not passed or has an error"
         },
-        new_name:validation_length_word
+        new_name:{
+            required:true,
+            type:String,
+            options: (val) => {
+                return val.length >= min_length_names && val.length <= max_length_names
+            },
+            error:"name doesn’t have the required length. Must be from 3 to 12 characters."
+        }
     }
 });
 //VALIDATED
@@ -98,8 +105,8 @@ Moralis.Cloud.define('put_join_party', async (req) => {
 
         partyToJoin.addUnique('avatarsIn',avatarToJoin)
         avatarToJoin.set('timeMine', getDate())
-        avatarToJoin.set('timeContract', getDate(7, 'hours'))
-        // avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'days'))
+        avatarToJoin.set('timeContract', getDate(7, 'hour'))
+        // avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'day'))
         avatarToJoin.set('belongParty', partyToJoin)
         await avatarToJoin.save(null, {useMasterKey:true})
 
