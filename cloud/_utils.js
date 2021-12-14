@@ -1,8 +1,8 @@
 const cooldown_set_time = 1
-const cooldown_set_type = 'hours'
+const cooldown_set_type = 'seconds'
 
 const min_length_names = 3;
-const max_length_names = 12;
+const max_length_names = 15;
 
 const min_length_bio = 1;
 const max_length_bio = 70;
@@ -22,6 +22,15 @@ let validation_length_word = {
         return val.length >= min_length_names && val.length <= max_length_names
     },
     error:"name doesn’t have the required length. Must be from 3 to 12 characters."
+}
+
+let validation_price = {
+    required: true,
+    type: Number,
+    options: val=>{
+        return val > 0
+    },
+    error: "price is not passed or it's not a valid number"
 }
 
 function getDate (time, time_type) {

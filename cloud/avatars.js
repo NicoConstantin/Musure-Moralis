@@ -20,10 +20,13 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
         
         newAvatar.set('rarity', rarityFound.attributes.rarity)
+        newAvatar.set('rarityNumber', rarityFound.attributes.rarityNumber)
         newAvatar.set('power', power)
         newAvatar.set('timeMine', -1)
         newAvatar.set('timeContract', -1)
         newAvatar.set('owner', eggToHatch.attributes.owner)
+        newAvatar.set('onSale', false)
+        newAvatar.set('publishedTime', -1)
         newAvatar.setACL(new Moralis.ACL(req.user))
         await newAvatar.save(null, { useMasterKey:true })
     
@@ -195,6 +198,66 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
             ...validation_id,
             error:"avatar_id is not passed or has an error"
         },
+    }
+});
+
+Moralis.Cloud.define('put_onsale_avatar', async (req) => {
+    const query_avatar = new Moralis.Query('Avatar');
+    const query_accessories = new Moralis.Query('Accessory');
+
+    try {
+        let avatarToSell = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+        query_accessories.equalTo('equippedOn', avatarToSell)
+        let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
+
+        if(accessoriesEquiped.length>0){
+            accessoriesEquiped.forEach(async acc=>{
+                acc.set('equippedOn', null)
+                await acc.save(null, {useMasterKey:true})
+                avatarToSell.set(acc.attributes.type.toLowerCase(), null)
+                await avatarToSell.save(null, {useMasterKey:true})
+            })
+        }
+
+        avatarToSell.set('price', req.params.price)
+        avatarToSell.set('onSale', true)
+        avatarToSell.set('publishedTime', getDate())
+        await avatarToSell.save(null, {useMasterKey:true})
+
+        return {
+            onSale: true,
+            message: 'Avatar was successfully put on sale'
+        }
+
+    } catch (error) {
+        return {
+            onSale: false,
+            message: error.message
+        }
+    }
+});
+
+Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
+    const query_avatar = new Moralis.Query('Avatar');
+
+    try {
+        let avatarToSell = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+
+        avatarToSell.set('price', null)
+        avatarToSell.set('onSale', false)
+        avatarToSell.set('publishedTime', -1)
+        await avatarToSell.save(null, {useMasterKey:true})
+
+        return {
+            onSale: true,
+            message: 'Avatar was successfully removed from sale'
+        }
+
+    } catch (error) {
+        return {
+            onSale: false,
+            message: error.message
+        }
     }
 });
 

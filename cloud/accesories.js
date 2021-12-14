@@ -44,12 +44,14 @@ Moralis.Cloud.define('mint_accessory', async (req) => {
         const newAccessory = new Accesory();
         newAccessory.set('type', type.attributes.type)
         newAccessory.set('rarity', rarity.attributes.rarity)
+        newAccessory.set('rarityNumber', rarity.attributes.rarityNumber)
         newAccessory.set('power', power)
         newAccessory.set('owner', req.user)
+        newAccessory.set('onSale', false)
+        newAccessory.set('publishedTime', -1)
         newAccessory.setACL(new Moralis.ACL(req.user))
         await newAccessory.save(null, { useMasterKey:true })
         
-
         return {
            created: true,
            accessory: newAccessory,
@@ -166,25 +168,16 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
 },{
     fields:{
         avatar_id:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val.length === 24
-            },
+            ...validation_id,
             error: "avatar_id is not passed or has an error"
         },
         accessory_id:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val.length === 24
-            },
+            ...validation_id,
             error: "accessory_id is not passed or has an error"
         },
     } 
 });
 //NOT REQUIRE VALIDATION
-
 Moralis.Cloud.define('get_accessories', async (req) => {
 
     const query_accessories = new Moralis.Query('Accessory')
@@ -216,4 +209,74 @@ Moralis.Cloud.define('get_accessories', async (req) => {
             message: error.message
         }
     }
+});
+//VALIDATED
+Moralis.Cloud.define('put_onsale_accessory', async (req) => {
+    const query_accessory = new Moralis.Query('Accessory');
+    
+    try {
+        let accessoryToSell = await query_accessory.get(req.params.accessory_id, {useMasterKey:true})
+
+        if(accessoryToSell.attributes.equippedOn){
+            const query_avatar = new Moralis.Query('Avatar');
+            let avatarToUnequip = await query_avatar.get(accessoryToSell.attributes.equippedOn, {useMasterKey:true})
+            avatarToUnequip.set(accessoryToSell.attributes.type.toLowerCase(), null)
+            await avatarToUnequip.save(null, {useMasterKey:true})
+        }
+
+        accessoryToSell.set('price', req.params.price)
+        accessoryToSell.set('onSale', true)
+        accessoryToSell.set('publishedTime', getDate())
+        await accessoryToSell.save(null, {useMasterKey:true})
+
+        return {
+            onSale: true,
+            message: 'Accessory was successfully put on sale'
+        }
+
+    } catch (error) {
+        return {
+            onSale: false,
+            message: error.message
+        }
+    }
+},{
+    fields:{
+        price: validation_price,
+        accessory_id:{
+            ...validation_id,
+            error: "accessory_id is not passed or has an error"
+        },
+    } 
+});
+//VALIDATED
+Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
+    const query_accessory = new Moralis.Query('Accessory');
+    
+    try {
+        let accessoryToSell = await query_accessory.get(req.params.accessory_id, {useMasterKey:true})
+
+        accessoryToSell.set('price', null)
+        accessoryToSell.set('onSale', false)
+        accessoryToSell.set('publishedTime', -1)
+        await accessoryToSell.save(null, {useMasterKey:true})
+
+        return {
+            onSale: true,
+            message: 'Accessory was successfully removed from sale'
+        }
+
+    } catch (error) {
+        return {
+            onSale: false,
+            message: error.message
+        }
+    }
+},{
+    fields:{
+        accessory_id:{
+            ...validation_id,
+            error: "accessory_id is not passed or has an error"
+        },
+    } 
 });
