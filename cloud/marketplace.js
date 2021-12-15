@@ -1,5 +1,4 @@
-const logger = Moralis.Cloud.getLogger();
-
+//VALIDATED
 Moralis.Cloud.define('get_marketplace', async (req) => {
 
     const { filter, sort, page, myListing, type } = req.params
@@ -10,7 +9,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             return 'a filter property is not a number'
         }
     }
-
     for (const prop in sort) {
         if(sort[prop] !== 'ascending' && sort[prop] !== 'descending'){
             return 'sort properties must be equal to ascending or descending'
@@ -18,7 +16,8 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     }
 
     let query_items = ""
-
+    
+    //DEFINING WHERE TO SEARCH
     if (type === 'avatar'){
         query_items = new Moralis.Query('Avatar');
     }
@@ -30,11 +29,11 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     try {
 
         query_items.equalTo('onSale', true)
-
+        //DEFINING IF NEEDED TO SEARCH ONLY ON USER'S ITEMS
         if (myListing){
             query_items.equalTo('owner', req.user)
         }
-
+        //FILTERING
         if (filter){
             if (filter.rarity) {
                 query_items.equalTo('rarityNumber', filter.rarity)
@@ -52,7 +51,7 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
                 query_items.lessThanOrEqualTo('price', filter.priceMax)
             }
         }
-
+        //SORTING
         if (sort){
             if(sort.rarity){
                 query_items[sort.rarity]('rarityNumber')
@@ -67,11 +66,10 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
                 query_items[sort.publishedTime]('publishedTime')
             }
         }
-
+        //PAGINATING
         if(page){
             query_items.skip( page * 60 )
         }
-
         query_items.limit(60)
         query_items.withCount()
 
@@ -83,10 +81,7 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
         }
 
     } catch (error) {
-        return {
-            results:false,
-            message:error.message
-        }
+        return error.message
     }
 },{
     fields:{
@@ -98,5 +93,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             },
             error: 'type is required and must be equal to avatar or accessory'
         }
-    }
+    },
+    requireUser: true
 });
