@@ -1,5 +1,5 @@
-
-Moralis.Cloud.define('get_economy', async (req) => {
+//VALIDATED
+Moralis.Cloud.define('get_economy', async () => {
 
     const query_economy = new Moralis.Query('ECONOMY');
 
@@ -11,9 +11,8 @@ Moralis.Cloud.define('get_economy', async (req) => {
         }
         
     } catch (error) {
-        return {
-            economy: false,
-            message: error.message
-        }
+        return error.message
     }
+},{
+    requireUser: true
 });

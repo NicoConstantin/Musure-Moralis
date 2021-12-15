@@ -1,16 +1,16 @@
 const Egg = Moralis.Object.extend('Egg');
+
 //VALIDATED
 Moralis.Cloud.define('mint_egg', async (req) => {
     
-    const query_user = new Moralis.Query(Moralis.User)
+    const user = req.user;
 
     try{
-        let actualUser = await query_user.get( req.user.id, { useMasterKey:true } )
         const newEgg = new Egg();
         newEgg.set('timeHatch', getDate(cooldown_set_time, cooldown_set_type))
         newEgg.set('isHatched', false)
-        newEgg.set('owner', actualUser)
-        newEgg.setACL(new Moralis.ACL(req.user))
+        newEgg.set('owner', user)
+        newEgg.setACL(new Moralis.ACL(user))
         await newEgg.save(null, { useMasterKey:true })
 
         return {
@@ -20,20 +20,21 @@ Moralis.Cloud.define('mint_egg', async (req) => {
     }
     
     catch(error){
-        return {
-            created: false,
-            messsage: error.message
-        }
+        return error.message
     }
 
+},{
+    requireUser: true
 });
-//NOT REQUIRE VALIDATION
-Moralis.Cloud.define('get_master_egg', async (req) => {
+
+//VALIDATED
+Moralis.Cloud.define('get_master_egg', async () => {
 
     const query_egg_master = new Moralis.Query('EGG_MASTER');
     const query_economy = new Moralis.Query('ECONOMY');
 
     try {
+
         query_economy.equalTo('reference','mint_price')
         let price_egg = await query_economy.first()
         let mastereggs = await query_egg_master.find()
@@ -44,9 +45,8 @@ Moralis.Cloud.define('get_master_egg', async (req) => {
             message: 'Egg master info'
         }
     } catch (error) {
-        return {
-            master_eggs : false,
-            message: error.message
-        }
+        return error.message
     }
+},{
+    requireUser: true
 });

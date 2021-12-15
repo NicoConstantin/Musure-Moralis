@@ -1,24 +1,36 @@
 const Avatar = Moralis.Object.extend('Avatar');
+const logger = Moralis.Cloud.getLogger()
+
 //VALIDATED
 Moralis.Cloud.define('mint_avatar', async (req) => {
 
     const query_egg = new Moralis.Query('Egg')
     const query_egg_master = new Moralis.Query('EGG_MASTER')
 
+    const egg_id = req.params.egg_id;
+    const user = req.user
+
     try {
-        let eggToHatch = await query_egg.get( req.params.egg_id, {useMasterKey:true} )
-        let dataToRandomizer = await query_egg_master.find()
-        
+        //VALIDATING CONTEXT
+        let eggToHatch = await query_egg.get( egg_id, {useMasterKey:true})
         if(eggToHatch.attributes.isHatched){
             return 'That egg is already hatched'
         }
-
+        
+        
+        
+        //SETTING EGG FIELDS
         eggToHatch.set('isHatched', true )
         await eggToHatch.save(null, {useMasterKey:true})
+        
+        //GETTING DATA TO SET ON AVATAR FIELDS
         const newAvatar = new Avatar();
+        query_egg_master.descending('dropRate')
+        let dataToRandomizer = await query_egg_master.find()
         let rarityFound = getRandomRarity( dataToRandomizer )
         let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
         
+        //SETTING AVATAR FIELDS
         newAvatar.set('rarity', rarityFound.attributes.rarity)
         newAvatar.set('rarityNumber', rarityFound.attributes.rarityNumber)
         newAvatar.set('power', power)
@@ -27,7 +39,7 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         newAvatar.set('owner', eggToHatch.attributes.owner)
         newAvatar.set('onSale', false)
         newAvatar.set('publishedTime', -1)
-        newAvatar.setACL(new Moralis.ACL(req.user))
+        newAvatar.setACL(new Moralis.ACL(user))
         await newAvatar.save(null, { useMasterKey:true })
     
         return {
@@ -37,10 +49,7 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         }
         
     } catch (error) {
-        return {
-            created: false,
-            message: error.message
-        }
+        return error.message
     }
 },{
     fields:{
@@ -48,16 +57,20 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
             ...validation_id,
             error: "egg_id is not passed or has an error"
         }
-    }
+    },
+    requireUser: true
 });
+
 //VALIDATED
 Moralis.Cloud.define('put_rename', async (req) => {
     
     const query_avatar = new Moralis.Query('Avatar')
     
+    const { avatar_id, new_name } = req.params
+    
     try {
-        let avatarToRename = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
-        avatarToRename.set('name', req.params.new_name)
+        let avatarToRename = await query_avatar.get(avatar_id, {useMasterKey:true})
+        avatarToRename.set('name', new_name)
         await avatarToRename.save(null, {useMasterKey:true})
     
         return {
@@ -66,11 +79,7 @@ Moralis.Cloud.define('put_rename', async (req) => {
         }
 
     } catch (error) {
-        return {
-            avatar: false,
-            message: error.message
-        }
-        
+        return error.message
     }
     
 },{
@@ -85,28 +94,36 @@ Moralis.Cloud.define('put_rename', async (req) => {
             options: (val) => {
                 return val.length >= min_length_names && val.length <= max_length_names
             },
-            error:"name doesn’t have the required length. Must be from 3 to 12 characters."
+            error:`name doesn’t have the required length. Must be from ${min_length_names} to ${max_length_names} characters.`
         }
-    }
+    },
+    requireUser: true
 });
+
 //VALIDATED
 Moralis.Cloud.define('put_join_party', async (req) => {
 
     const query_avatar = new Moralis.Query('Avatar');
     const query_party = new Moralis.Query('Party');
 
-    try {
-        let partyToJoin = await query_party.get(req.params.party_id, {useMasterKey:true});
-        let avatarToJoin = await query_avatar.get(req.params.avatar_id, {useMasterKey:true});
+    const { party_id, avatar_id, time_contract} = req.params;
 
+    try {
+        let avatarToJoin = await query_avatar.get(avatar_id, {useMasterKey:true});
+        
+        //VALIDATING CONTEXT
         if(avatarToJoin.attributes.timeContract>-1 || avatarToJoin.attributes.belongParty){
             return 'That avatar belongs to a party, you cannot contract other'
         }
-
+        
+        //SETTING PARTY FIELDS
+        let partyToJoin = await query_party.get(party_id, {useMasterKey:true});
         partyToJoin.addUnique('avatarsIn',avatarToJoin)
+        await partyToJoin.save(null, {useMasterKey:true})
+
+        //SETTING AVATAR FIELDS
         avatarToJoin.set('timeMine', getDate())
-        avatarToJoin.set('timeContract', getDate(7, 'hour'))
-        // avatarToJoin.set('timeContract', getDate(req.params.time_contract, 'day'))
+        avatarToJoin.set('timeContract', getDate(time_contract, 'day'))
         avatarToJoin.set('belongParty', partyToJoin)
         await avatarToJoin.save(null, {useMasterKey:true})
 
@@ -116,10 +133,7 @@ Moralis.Cloud.define('put_join_party', async (req) => {
         }
 
     } catch (error) {
-        return {
-            joined: false,
-            message: error.message
-        }
+        return error.message
     }
 
 },{
@@ -132,15 +146,27 @@ Moralis.Cloud.define('put_join_party', async (req) => {
             ...validation_id,
             error:"avatar_id is not passed or has an error"
         },
-    }
+        time_contract:{
+            required: true,
+            type: Number,
+            options: (val)=>{
+                return val >= 7
+            },
+            error: 'time_contract must be a number greater or equal to 7'
+        }
+    },
+    requireUser: true
 });
+
 //VALIDATED
 Moralis.Cloud.define('get_avatar', async (req) => {
 
     const query_avatar = new Moralis.Query('Avatar');
 
+    const avatar_id = req.params.avatar_id;
+
     try {
-        let avatar = await query_avatar.get(req.params.avatar_id, {useMasterKey:true});
+        let avatar = await query_avatar.get(avatar_id, {useMasterKey:true});
 
         return {
             avatar: avatar,
@@ -148,10 +174,7 @@ Moralis.Cloud.define('get_avatar', async (req) => {
         }
 
     } catch (error) {
-        return {
-            avatar: false,
-            message: error.message
-        }
+        return error.message
     }
 },{
     fields:{
@@ -159,7 +182,8 @@ Moralis.Cloud.define('get_avatar', async (req) => {
             ...validation_id,
             error:"avatar_id is not passed or has an error"
         },
-    }
+    },
+    requireUser: true
 });
 
 //VALIDATED
@@ -167,24 +191,29 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
 
     const query_avatar = new Moralis.Query('Avatar');
 
+    const avatar_id = req.params.avatar_id
+
     try {
-        let avatarExpired = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+        let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
         
-            let avatar = avatarExpired
-            let party = avatarExpired.attributes.belongParty
+        //VALIDATING CONTEXT
+        if(avatar.attributes.timeContract > getDate()){
+            return 'Why you want to kick an avatar before his time expire ? :('
+        }
+        
+        if(avatar.attributes.timeContract <= getDate() && avatar.attributes.belongParty){
+            //SETTING PARTY FIELDS
+            let party = avatar.attributes.belongParty
+            party.remove('avatarsIn', avatar)
+            await party.save(null, {useMasterKey:true})
 
-            if(avatar.attributes.timeContract > getDate()){
-                return 'Why you want to kick an avatar before his time expire ? :('
-            }
-            if(avatar.attributes.timeContract <= getDate() && avatar.attributes.belongParty){
-                party.remove('avatarsIn', avatar)
-                await party.save(null, {useMasterKey:true})
-                avatar.set('belongParty', null)
-                avatar.set('timeContract', -1)
-                avatar.set('timeMine', -1)
-                await avatar.save(null, {useMasterKey:true})
+            //SETTING AVATAR FIELDS
+            avatar.set('belongParty', null)
+            avatar.set('timeContract', -1)
+            avatar.set('timeMine', -1)
+            await avatar.save(null, {useMasterKey:true})
 
-            }
+        }
 
         return {
             kicked: true,
@@ -193,10 +222,7 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
 
 
     } catch (error) {
-        return {
-            kicked: false,
-            message: error.message
-        }
+        return error.message
     }
 
 },{
@@ -205,28 +231,46 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
             ...validation_id,
             error:"avatar_id is not passed or has an error"
         },
-    }
+    },
+    requireUser: true
 });
 
+//VALIDATED
 Moralis.Cloud.define('put_onsale_avatar', async (req) => {
+
     const query_avatar = new Moralis.Query('Avatar');
     const query_accessories = new Moralis.Query('Accessory');
 
+    const { avatar_id, price } = req.params;
+
     try {
-        let avatarToSell = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+        let avatarToSell = await query_avatar.get(avatar_id, {useMasterKey:true})
+
+        //VALIDATING CONTEXT
+        if(avatarToSell.attributes.onSale){
+            return 'that avatar is already on sale'
+        }
+        if(avatarToSell.attributes.timeMine >= getDate()){
+            return 'your avatar is tired, you should wait until it rests to put it up for sale'
+        }
+
+        //FINDING IF AVATAR HAS ACCESSORIES EQUIPPED
         query_accessories.equalTo('equippedOn', avatarToSell)
         let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
 
-        if(accessoriesEquiped.length>0){
-            accessoriesEquiped.forEach(async acc=>{
+        //UNEQUIPPING ACCESSORIES
+        if(accessoriesEquiped.length > 0){
+            accessoriesEquiped.forEach(async (acc)=>{
                 acc.set('equippedOn', null)
                 await acc.save(null, {useMasterKey:true})
                 avatarToSell.set(acc.attributes.type.toLowerCase(), null)
+                avatarToSell.set('power', avatarToSell.attributes.power - acc.attributes.power)
                 await avatarToSell.save(null, {useMasterKey:true})
             })
         }
 
-        avatarToSell.set('price', req.params.price)
+        //SETTING AVATAR FIELDS
+        avatarToSell.set('price', price)
         avatarToSell.set('onSale', true)
         avatarToSell.set('publishedTime', getDate())
         await avatarToSell.save(null, {useMasterKey:true})
@@ -237,31 +281,40 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
         }
 
     } catch (error) {
-        return {
-            onSale: false,
-            message: error.message
-        }
+        return error.message
     }
 },{
     fields:{
         price: validation_price,
-        avatar_id:{
+        avatar_id: {
             ...validation_id,
             error: "avatar_id is not passed or has an error"
         },
-    } 
+    },
+    requireUser: true
 });
 
+//VALIDATED
 Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
+
     const query_avatar = new Moralis.Query('Avatar');
 
-    try {
-        let avatarToSell = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+    const avatar_id = req.params
 
-        avatarToSell.set('price', null)
-        avatarToSell.set('onSale', false)
-        avatarToSell.set('publishedTime', -1)
-        await avatarToSell.save(null, {useMasterKey:true})
+    try {
+        let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
+
+        //VALIDATING
+        if(!avatar.attributes.onSale){
+            return 'you cannot remove from sale an avatar that is not being sold'
+        }
+        //SETTING AVATAR FIELDS
+        else{
+            avatar.set('price', null)
+            avatar.set('onSale', false)
+            avatar.set('publishedTime', -1)
+            await avatar.save(null, {useMasterKey:true})
+        }
 
         return {
             removed: true,
@@ -269,10 +322,7 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
         }
 
     } catch (error) {
-        return {
-            removed: false,
-            message: error.message
-        }
+        return error.message
     }
 },{
     fields:{
@@ -280,7 +330,8 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
             ...validation_id,
             error: "avatar_id is not passed or has an error"
         },
-    } 
+    },
+    requireUser: true 
 });
 
 //REMOVE THIS ENDPOINT ON PRODUCTION
