@@ -381,5 +381,53 @@ Moralis.Cloud.define('delete_avatar', async (req) => {
             ...validation_id,
             error: "avatar_id is not passed or has an error"
         }
+    },
+    requireUser: true
+});
+
+//VALIDATED
+Moralis.Cloud.define('buy_avatar', async (req) => {
+    
+    const query_avatar = new Moralis.Query('Avatar')
+    const avatar_id = req.params.avatar_id;
+    const user = req.user;
+
+    try {
+
+        let avatar = await query_avatar.get(avatar_id, {useMasterKey: true})
+
+        //VALIDATING CONTEXT
+        if(avatar.attributes.owner.id === user.id){
+            return 'you cannot buy your own avatar'
+        }
+        if(!accessory.attributes.onSale){
+            return 'this accessory is not on sale'
+        }
+        else{
+            //TRANSFERING AVATAR
+            avatar.set('price', null)
+            avatar.set('onSale', false)
+            avatar.set('publishedTime', -1)
+            avatar.set('owner', user)
+            avatar.setACL(new Moralis.ACL(user))
+            await avatar.save(null, {useMasterKey:true})
+    
+            return {
+                transferred: true,
+                message: 'avatar transferred'
+            }
+        }
+        
+    } catch (error) {
+        return error.message
     }
+},{
+    fields:{
+        avatar_id: {
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+
+    },
+    requireUser: true
 });

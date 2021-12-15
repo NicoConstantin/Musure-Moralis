@@ -82,15 +82,15 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
 
     const query_mission = new Moralis.Query('MISSION_MASTER');
     const query_avatar = new Moralis.Query('Avatar');
+    const query_accessories = new Moralis.Query('Accessory');
 
     const { mission_id, avatar_id} = req.params
     const user = req.user
     
     try {
         
-        let mission = await query_mission.get(mission_id, {useMasterKey:true})
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
-
+        
         //VALIDATING CONTEXT
         if(avatar.attributes.timeMine > getDate()){
             return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
@@ -98,13 +98,33 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         if(!avatar.attributes.belongParty){
             return 'You must be in a party to do this quest :('
         }
-
+        if(avatar.attributes.onSale){
+            return 'You cannot do quest if your avatar is on sale'
+        }
+        
+        let mission = await query_mission.get(mission_id, {useMasterKey:true})
+        query_accessories.equalTo('equippedOn', avatar)
+        let accessoriesEquipped = await query_accessories.find({useMasterKey:true})
         //GENERATING RANDOM NUMBER
         let generated = getRandomNumber(mission.attributes.successRate)
 
         //SETTING FIELDS
         avatar.set('timeMine',getDate(cooldown_set_time, cooldown_set_type))
         await avatar.save(null, { useMasterKey:true })
+
+        //LOWERING DURABILITY OF ACCESSORIES, IF REACH 0 , LOWS AVATAR POWER
+        accessoriesEquipped.forEach( async (acc) => {
+            let newDuration = acc.attributes.durationLeft - 1 
+
+            if(newDuration <= 0){
+                avatar.set('power', avatar.attributes.power - accessory.attributes.power)
+                await avatar.save(null, { useMasterKey:true })
+                acc.set('power', 0)
+            }
+            
+            acc.set('durationLeft', newDuration)
+            await acc.save(null, { useMasterKey:true })
+        });
         
         //MISSION PASSED
         if(generated.result){
