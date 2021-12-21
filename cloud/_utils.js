@@ -2,7 +2,7 @@ const cooldown_set_time = 1;
 const cooldown_set_type = 'second';
 
 const min_length_names = 3;
-const max_length_names = 12;
+const max_length_names = 15;
 
 const min_length_bio = 1;
 const max_length_bio = 70;
