@@ -214,6 +214,7 @@ Moralis.Cloud.define('get_accessories', async (req) => {
 
     try {
         query_accessories.equalTo('owner', user)
+        query_accessories.notEqualTo("onSale", true);
         let rawAccessories = await query_accessories.find({useMasterKey:true})
         let accessoriesUser = {}
 
