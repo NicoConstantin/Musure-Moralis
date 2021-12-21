@@ -299,7 +299,7 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
 
     const query_avatar = new Moralis.Query('Avatar');
 
-    const avatar_id = req.params
+    const avatar_id = req.params.avatar_id
 
     try {
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
@@ -400,8 +400,8 @@ Moralis.Cloud.define('buy_avatar', async (req) => {
         if(avatar.attributes.owner.id === user.id){
             return 'you cannot buy your own avatar'
         }
-        if(!accessory.attributes.onSale){
-            return 'this accessory is not on sale'
+        if(!avatar.attributes.onSale){
+            return 'this avatar is not on sale'
         }
         else{
             //TRANSFERING AVATAR

@@ -73,10 +73,10 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             }
         }
         //PAGINATING
-        if(page){
-            query_items.skip( page * 60 )
-        }
-        query_items.limit(60)
+        // if(page){
+        //     query_items.skip( page * 60 )
+        // }
+        query_items.limit(1000)
         query_items.withCount()
 
         let resultAvatars = await query_items.find({useMasterKey:true})
