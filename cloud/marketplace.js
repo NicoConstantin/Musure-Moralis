@@ -32,6 +32,7 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     try {
 
         query_items.equalTo('onSale', true)
+        query_items.include('owner')
         //DEFINING IF NEEDED TO SEARCH ONLY ON USER'S ITEMS
         if (myListing){
             query_items.equalTo('owner', req.user)

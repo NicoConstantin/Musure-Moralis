@@ -214,7 +214,7 @@ Moralis.Cloud.define('get_accessories', async (req) => {
 
     try {
         query_accessories.equalTo('owner', user)
-        query_accessories.notEqualTo("onSale", true);
+        query_accessories.equalTo("onSale", false);
         let rawAccessories = await query_accessories.find({useMasterKey:true})
         let accessoriesUser = {}
 
@@ -292,7 +292,7 @@ Moralis.Cloud.define('kick_onsale_accessory', async (req) => {
 
     const query_accessory = new Moralis.Query('Accessory');
 
-    const accessory_id = req.params;
+    const accessory_id = req.params.accessory_id;
     
     try {
         let accessoryToSell = await query_accessory.get(accessory_id, {useMasterKey:true})
