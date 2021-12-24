@@ -80,15 +80,20 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
 //VALIDATED
 Moralis.Cloud.define('do_crew_quest', async (req) => {
 
+
+    const logger = Moralis.Cloud.getLogger();
     const query_mission = new Moralis.Query('MISSION_MASTER');
     const query_avatar = new Moralis.Query('Avatar');
     const query_accessories = new Moralis.Query('Accessory');
 
     const { mission_id, avatar_id} = req.params
     const user = req.user
+    const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti']
     
     try {
-        
+        for (let i = 0; i < typesAccessories.length; i++) {
+            query_avatar.include(typesAccessories[i])
+        }
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
         
         //VALIDATING CONTEXT
@@ -113,7 +118,8 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         await avatar.save(null, { useMasterKey:true })
 
         //LOWERING DURABILITY OF ACCESSORIES, IF REACH 0 , LOWS AVATAR POWER
-        accessoriesEquipped.forEach( async (acc) => {
+        for (let i = 0; i < accessoriesEquipped.length; i++) {
+            let acc = accessoriesEquipped[i]
             let newDuration = acc.attributes.durationLeft - 1 
 
             if(newDuration <= 0){
@@ -124,7 +130,18 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
             
             acc.set('durationLeft', newDuration)
             await acc.save(null, { useMasterKey:true })
-        });
+            
+        }
+        //SETTING ARRAY WITH AVATAR ACCESSORIES
+        let temp = typesAccessories.map(type=>{
+            if(avatar.attributes[type] !== undefined){
+                return {
+                    durationLeft: avatar.attributes[type].attributes.durationLeft - 1,
+                    type: type
+                }
+            }
+        })
+        let accessories = temp.filter(n=> typeof(n) === 'object')
         
         //MISSION PASSED
         if(generated.result){
@@ -133,7 +150,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
 
             return {
                 results:{
-                    avatar: avatar,
+                    accessories: accessories,
                     result: generated.result,
                     roll: generated.roll,
                     reward: mission.attributes.reward,
@@ -148,7 +165,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         if(!generated.result){
             return {
                 results:{
-                    avatar: avatar,
+                    accessories: accessories,
                     result: generated.result,
                     roll: generated.roll,
                     reward: mission.attributes.reward,
