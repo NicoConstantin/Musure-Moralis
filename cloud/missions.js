@@ -133,6 +133,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
 
             return {
                 results:{
+                    avatar: avatar,
                     result: generated.result,
                     roll: generated.roll,
                     reward: mission.attributes.reward,
@@ -147,6 +148,7 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         if(!generated.result){
             return {
                 results:{
+                    avatar: avatar,
                     result: generated.result,
                     roll: generated.roll,
                     reward: mission.attributes.reward,
