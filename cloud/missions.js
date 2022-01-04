@@ -120,16 +120,19 @@ Moralis.Cloud.define('do_crew_quest', async (req) => {
         //LOWERING DURABILITY OF ACCESSORIES, IF REACH 0 , LOWS AVATAR POWER
         for (let i = 0; i < accessoriesEquipped.length; i++) {
             let acc = accessoriesEquipped[i]
-            let newDuration = acc.attributes.durationLeft - 1 
-
-            if(newDuration <= 0){
-                avatar.set('power', avatar.attributes.power - accessory.attributes.power)
-                await avatar.save(null, { useMasterKey:true })
-                acc.set('power', 0)
+            if(acc.attributes.durationLeft > 0){
+                
+                let newDuration = acc.attributes.durationLeft - 1 
+    
+                if(newDuration === 0){
+                    avatar.set('power', avatar.attributes.power - accessory.attributes.power)
+                    await avatar.save(null, { useMasterKey:true })
+                    acc.set('power', 0)
+                }
+                
+                acc.set('durationLeft', newDuration)
+                await acc.save(null, { useMasterKey:true })
             }
-            
-            acc.set('durationLeft', newDuration)
-            await acc.save(null, { useMasterKey:true })
             
         }
         //SETTING ARRAY WITH AVATAR ACCESSORIES
