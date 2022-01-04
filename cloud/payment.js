@@ -1,6 +1,6 @@
 const MusureTransferPending = Moralis.Object.extend('MusureTransfersPending');
 
-Moralis.Cloud.define('testing', async (req) => {
+Moralis.Cloud.define('payment', async (req) => {
 
     const { hash, reference, data } = req.params;
     const user = req.user

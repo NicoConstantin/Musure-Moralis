@@ -1,4 +1,4 @@
-Moralis.Cloud.afterSave("MusureTransfers", async function(req) {
+Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
 
     const confirmed = req.object.get("confirmed");
     const hash = req.object.get('transaction_hash')
@@ -19,9 +19,15 @@ Moralis.Cloud.afterSave("MusureTransfers", async function(req) {
       const transferToProcess = await query_transfer_pending.first({useMasterKey:true})
 
       const user = transferToProcess.attributes.payer
-      const primary_id = transferToProcess.attributes.data[0]
-      const secondary_id = transferToProcess.attributes.data[1]
-      const extra_data = transferToProcess.attributes.data[2]
+      let primary_id = ""
+      let secondary_id = ""
+      let extra_data = ""
+
+      if(transferToProcess.attributes.data){
+          primary_id = transferToProcess.attributes.data[0]
+          secondary_id = transferToProcess.attributes.data[1]
+          extra_data = transferToProcess.attributes.data[2]
+      }
 
       switch (transferToProcess.attributes.reference) {
 
@@ -72,7 +78,7 @@ Moralis.Cloud.afterSave("MusureTransfers", async function(req) {
                 logger.info(JSON.stringify('That avatar already has a party'))
                 break;
             }
-            if(time_contract < 7){
+            if(extra_data < 7){
                 logger.info(JSON.stringify('time_contract must be a number greater or equal to 7'))
                 break;
             }
