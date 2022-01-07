@@ -166,10 +166,25 @@ Moralis.Cloud.define('get_avatar', async (req) => {
     const avatar_id = req.params.avatar_id;
 
     try {
+        const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti'];
+
+        for (let i = 0; i < typesAccessories.length; i++) {
+            query_avatar.include(typesAccessories[i])
+        }
+
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true});
+
+        const accessoriesAvatar = [];
+
+        for (const key in avatar.attributes) {
+            if (typesAccessories.includes(key)) {
+                accessoriesAvatar.push(avatar.attributes[key])
+            }
+        }
 
         return {
             avatar: avatar,
+            avatarAccessories: accessoriesAvatar,
             message: "Avatar info"
         }
 
