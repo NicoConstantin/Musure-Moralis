@@ -35,7 +35,7 @@ Moralis.Cloud.define('get_master_egg', async () => {
 
     try {
 
-        query_economy.equalTo('reference','mint_price')
+        query_economy.equalTo('reference','mint_avatar')
         let price_egg = await query_economy.first()
         query_egg_master.descending('dropRate')
         let mastereggs = await query_egg_master.find()

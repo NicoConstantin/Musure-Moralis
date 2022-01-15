@@ -204,35 +204,56 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
     },
     requireUser: true 
 });
-
 //VALIDATED
 Moralis.Cloud.define('get_accessories', async (req) => {
 
-    const query_accessories = new Moralis.Query('Accessory')
+    const { filter, sort } = req.params
+    const user = req.user
 
-    const user = req.user;
+    const query_user_accessories = new Moralis.Query('Accessory');
 
     try {
-        query_accessories.equalTo('owner', user)
-        query_accessories.equalTo("onSale", false);
-        let rawAccessories = await query_accessories.find({useMasterKey:true})
-        let accessoriesUser = {}
-
-        //SORTING DATA TO BE SEND
-        for (let i = 0; i < rawAccessories.length; i++) {
-            let type = rawAccessories[i].attributes.type
-            if (accessoriesUser[type]){
-                accessoriesUser[type].push(rawAccessories[i])
+        query_user_accessories.equalTo('owner', user)
+        query_user_accessories.equalTo("onSale", false);
+        query_user_accessories.equalTo("equippedOn", null);
+        //FILTERING
+        if (filter){
+            if (filter.rarity) {
+                query_user_accessories.equalTo('rarityNumber', filter.rarity)
             }
-            else{
-                accessoriesUser[type] = [rawAccessories[i]]
+            if (filter.powerMin) {
+                query_user_accessories.greaterThanOrEqualTo('power', filter.powerMin)
             }
-            
+            if (filter.powerMax) {
+                query_user_accessories.lessThanOrEqualTo('power', filter.powerMax)
+            }
+            if (filter.type){
+                query_user_accessories.equalTo('type', filter.type)
+            }
         }
+        //SORTING
+        if (sort){
+            if(sort.type){
+                query_user_accessories[sort.type]('type')
+            }
+            if(sort.rarity){
+                query_user_accessories[sort.rarity]('rarityNumber')
+            }
+            if(sort.power){
+                query_user_accessories[sort.power]('power')
+            }
+            if(sort.durationLeft){
+                query_user_accessories[sort.durationLeft]('durationLeft')
+            }
+        }
+        query_user_accessories.limit(1000)
+        query_user_accessories.withCount()
+
+        let resultAccessories = await query_user_accessories.find({useMasterKey:true})
 
         return {
-            accessories: accessoriesUser,
-            message: "User accessories"
+            ...resultAccessories,
+            message: 'Items that were ordered'
         }
 
     } catch (error) {

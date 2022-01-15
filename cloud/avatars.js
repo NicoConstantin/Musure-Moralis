@@ -17,8 +17,6 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
             return 'That egg is already hatched'
         }
         
-        
-        
         //SETTING EGG FIELDS
         eggToHatch.set('isHatched', true )
         await eggToHatch.save(null, {useMasterKey:true})
@@ -28,12 +26,13 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         query_egg_master.descending('dropRate')
         let dataToRandomizer = await query_egg_master.find()
         let rarityFound = getRandomRarity( dataToRandomizer )
-        let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
+        // let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
         
         //SETTING AVATAR FIELDS
         newAvatar.set('rarity', rarityFound.attributes.rarity)
         newAvatar.set('rarityNumber', rarityFound.attributes.rarityNumber)
-        newAvatar.set('power', power)
+        // newAvatar.set('power', power)
+        newAvatar.set('power', 0)
         newAvatar.set('timeMine', -1)
         newAvatar.set('timeContract', -1)
         newAvatar.set('owner', eggToHatch.attributes.owner)
