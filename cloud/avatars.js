@@ -349,55 +349,55 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
 });
 
 //REMOVE THIS ENDPOINT ON PRODUCTION
-Moralis.Cloud.define('delete_avatar', async (req) => {
-    const query_avatar = new Moralis.Query('Avatar');
-    const query_accessories = new Moralis.Query('Accessory');
+// Moralis.Cloud.define('delete_avatar', async (req) => {
+//     const query_avatar = new Moralis.Query('Avatar');
+//     const query_accessories = new Moralis.Query('Accessory');
 
-    try {
-        let avatarToDelete = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
-        query_accessories.equalTo('equippedOn', avatarToDelete)
-        let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
+//     try {
+//         let avatarToDelete = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+//         query_accessories.equalTo('equippedOn', avatarToDelete)
+//         let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
 
-            if(avatarToDelete.attributes.belongParty){
-                let party = avatarToDelete.attributes.belongParty
+//             if(avatarToDelete.attributes.belongParty){
+//                 let party = avatarToDelete.attributes.belongParty
     
-                party.remove('avatarsIn', avatarToDelete)
-                await party.save(null, {useMasterKey:true})
+//                 party.remove('avatarsIn', avatarToDelete)
+//                 await party.save(null, {useMasterKey:true})
 
-            }
+//             }
 
-            if(accessoriesEquiped.length>0){
-                accessoriesEquiped.forEach(async acc=>{
-                    acc.set('equippedOn', null)
-                    await acc.save(null, {useMasterKey:true})
-                })
-            }
+//             if(accessoriesEquiped.length>0){
+//                 accessoriesEquiped.forEach(async acc=>{
+//                     acc.set('equippedOn', null)
+//                     await acc.save(null, {useMasterKey:true})
+//                 })
+//             }
 
-            await avatarToDelete.destroy({useMasterKey:true})
+//             await avatarToDelete.destroy({useMasterKey:true})
             
 
-        return {
-            deleted: true,
-            message: 'Avatar Deleted'
-        }
+//         return {
+//             deleted: true,
+//             message: 'Avatar Deleted'
+//         }
 
 
-    } catch (error) {
-        return {
-            deleted: false,
-            message: error.message
-        }
-    }
+//     } catch (error) {
+//         return {
+//             deleted: false,
+//             message: error.message
+//         }
+//     }
 
-},{
-    fields:{
-        avatar_id: {
-            ...validation_id,
-            error: "avatar_id is not passed or has an error"
-        }
-    },
-    requireUser: true
-});
+// },{
+//     fields:{
+//         avatar_id: {
+//             ...validation_id,
+//             error: "avatar_id is not passed or has an error"
+//         }
+//     },
+//     requireUser: true
+// });
 
 //VALIDATED
 // Moralis.Cloud.define('buy_avatar', async (req) => {

@@ -103,3 +103,146 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     },
     requireUser: true
 });
+
+Moralis.Cloud.define('fill_marketplace', async (req) => {
+    const Avatar = Moralis.Object.extend("Avatar");
+    const Accessory = Moralis.Object.extend("Accessory");
+
+    const user = req.user;
+
+    const avatarsData = [
+        {
+            name: 'Common',
+            number: 1,
+            priceMin: 40,
+            priceMax: 45,
+        },
+        {
+            name: 'Rare',
+            number: 2,
+            priceMin: 60,
+            priceMax: 70,
+        },
+        {
+            name: 'Epic',
+            number: 3,
+            priceMin: 100,
+            priceMax: 120,
+        },
+        {
+            name: 'Legendary',
+            number: 4,
+            priceMin: 150,
+            priceMax: 180,
+        },
+        {
+            name: 'Mythic',
+            number: 5,
+            priceMin: 230,
+            priceMax: 250,
+        },
+    ];
+
+    const accessoriesData = [
+        {
+            name: 'Common',
+            number: 1,
+            priceMin: 130,
+            priceMax: 140,
+            powerMin: 78,
+            powerMax: 260,
+        },
+        {
+            name: 'Rare',
+            number: 2,
+            priceMin: 160,
+            priceMax: 170,
+            powerMin: 261,
+            powerMax: 520,
+        },
+        {
+            name: 'Epic',
+            number: 3,
+            priceMin: 210,
+            priceMax: 230,
+            powerMin: 521,
+            powerMax: 780,
+        },
+        {
+            name: 'Legendary',
+            number: 4,
+            priceMin: 300,
+            priceMax: 350,
+            powerMin: 781,
+            powerMax: 1040,
+        },
+        {
+            name: 'Mythic',
+            number: 5,
+            priceMin: 500,
+            priceMax: 550,
+            powerMin: 1041,
+            powerMax: 1326,
+        },
+    ];
+    const accessoriesType = ['Graffiti', 'Dance', 'Bazooka', 'Wing', 'Aura', 'Sneaker', 'Head', 'Skin', 'Vehicle', 'Pet']
+
+    try {
+        
+        let pointerAv = 0
+    
+        for (let i = 0; i < 50; i++) {
+            logger.info(`creatingAvatar${i}`)
+            if(i % 10 === 0 && i !== 0) {
+                pointerAv = pointerAv + 1
+            }
+    
+            const newAvatar = new Avatar();
+            newAvatar.setACL(new Moralis.ACL(user))
+            newAvatar.set('rarity', avatarsData[pointerAv].name)
+            newAvatar.set('rarityNumber', avatarsData[pointerAv].number)
+            newAvatar.set('power', 0)
+            newAvatar.set('timeMine', -1)
+            newAvatar.set('timeContract', -1)
+            newAvatar.set('owner', user)
+            newAvatar.set('price', getRandomPower(avatarsData[pointerAv].priceMax, avatarsData[pointerAv].priceMin))
+            newAvatar.set('onSale', true)
+            newAvatar.set('publishedTime', getDate())
+            await newAvatar.save(null, {useMasterKey: true})
+        }
+    
+        let pointerAcc = 0;
+        let pointerRarity = 0;
+    
+        for (let j = 0; j < 500; j++) {
+            logger.info(`creatingAccessory${j}`)
+            if(j % 10 === 0 && j !== 0){
+                pointerRarity = pointerRarity + 1
+            }
+            if(j % 50 === 0 && j !== 0){
+                pointerAcc = pointerAcc + 1
+                pointerRarity = 0
+            }
+    
+            const newAccessory = new Accessory();
+            newAccessory.setACL(new Moralis.ACL(user))
+            newAccessory.set('type', accessoriesType[pointerAcc])
+            newAccessory.set('rarity', accessoriesData[pointerRarity].name)
+            newAccessory.set('rarityNumber', accessoriesData[pointerRarity].number)
+            newAccessory.set('power', getRandomPower(accessoriesData[pointerRarity].powerMax, accessoriesData[pointerRarity].powerMin))
+            newAccessory.set('owner', user)
+            newAccessory.set('durationLeft', 130)
+            newAccessory.set('price', getRandomPower(accessoriesData[pointerRarity].priceMax, accessoriesData[pointerRarity].priceMin))
+            newAccessory.set('onSale', true)
+            newAccessory.set('publishedTime', getDate())
+            await newAccessory.save(null, {useMasterKey: true})
+        }
+    
+        return 'Market fullfilled'
+
+    } catch (error) {
+        logger.info(JSON.stringify(error.message))
+        return error.message
+    }
+    
+});
