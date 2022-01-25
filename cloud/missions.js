@@ -78,122 +78,122 @@ Moralis.Cloud.define('do_creator_quest', async (req) => {
 });
 
 //VALIDATED
-Moralis.Cloud.define('do_crew_quest', async (req) => {
+// Moralis.Cloud.define('do_crew_quest', async (req) => {
 
 
-    const logger = Moralis.Cloud.getLogger();
-    const query_mission = new Moralis.Query('MISSION_MASTER');
-    const query_avatar = new Moralis.Query('Avatar');
-    const query_accessories = new Moralis.Query('Accessory');
+//     const logger = Moralis.Cloud.getLogger();
+//     const query_mission = new Moralis.Query('MISSION_MASTER');
+//     const query_avatar = new Moralis.Query('Avatar');
+//     const query_accessories = new Moralis.Query('Accessory');
 
-    const { mission_id, avatar_id} = req.params
-    const user = req.user
-    const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti']
+//     const { mission_id, avatar_id} = req.params
+//     const user = req.user
+//     const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti']
     
-    try {
-        for (let i = 0; i < typesAccessories.length; i++) {
-            query_avatar.include(typesAccessories[i])
-        }
-        let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
+//     try {
+//         for (let i = 0; i < typesAccessories.length; i++) {
+//             query_avatar.include(typesAccessories[i])
+//         }
+//         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true})
         
-        //VALIDATING CONTEXT
-        if(avatar.attributes.timeMine > getDate()){
-            return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
-        }
-        if(!avatar.attributes.belongParty){
-            return 'You must be in a party to do this quest :('
-        }
-        if(avatar.attributes.onSale){
-            return 'You cannot do quest if your avatar is on sale'
-        }
+//         //VALIDATING CONTEXT
+//         if(avatar.attributes.timeMine > getDate()){
+//             return `You must wait ${Math.round((avatar.attributes.timeMine < getDate())/60)} minutes to do this quest`
+//         }
+//         if(!avatar.attributes.belongParty){
+//             return 'You must be in a party to do this quest :('
+//         }
+//         if(avatar.attributes.onSale){
+//             return 'You cannot do quest if your avatar is on sale'
+//         }
         
-        let mission = await query_mission.get(mission_id, {useMasterKey:true})
-        query_accessories.equalTo('equippedOn', avatar)
-        let accessoriesEquipped = await query_accessories.find({useMasterKey:true})
-        //GENERATING RANDOM NUMBER
-        let generated = getRandomNumber(mission.attributes.successRate)
+//         let mission = await query_mission.get(mission_id, {useMasterKey:true})
+//         query_accessories.equalTo('equippedOn', avatar)
+//         let accessoriesEquipped = await query_accessories.find({useMasterKey:true})
+//         //GENERATING RANDOM NUMBER
+//         let generated = getRandomNumber(mission.attributes.successRate)
 
-        //SETTING FIELDS
-        avatar.set('timeMine',getDate(cooldown_set_time, cooldown_set_type))
-        await avatar.save(null, { useMasterKey:true })
+//         //SETTING FIELDS
+//         avatar.set('timeMine',getDate(cooldown_set_time, cooldown_set_type))
+//         await avatar.save(null, { useMasterKey:true })
 
-        //LOWERING DURABILITY OF ACCESSORIES, IF REACH 0 , LOWS AVATAR POWER
-        for (let i = 0; i < accessoriesEquipped.length; i++) {
-            let acc = accessoriesEquipped[i]
-            if(acc.attributes.durationLeft > 0){
+//         //LOWERING DURABILITY OF ACCESSORIES, IF REACH 0 , LOWS AVATAR POWER
+//         for (let i = 0; i < accessoriesEquipped.length; i++) {
+//             let acc = accessoriesEquipped[i]
+//             if(acc.attributes.durationLeft > 0){
                 
-                let newDuration = acc.attributes.durationLeft - 1 
+//                 let newDuration = acc.attributes.durationLeft - 1 
     
-                if(newDuration === 0){
-                    avatar.set('power', avatar.attributes.power - accessory.attributes.power)
-                    await avatar.save(null, { useMasterKey:true })
-                    acc.set('power', 0)
-                }
+//                 if(newDuration === 0){
+//                     avatar.set('power', avatar.attributes.power - accessory.attributes.power)
+//                     await avatar.save(null, { useMasterKey:true })
+//                     acc.set('power', 0)
+//                 }
                 
-                acc.set('durationLeft', newDuration)
-                await acc.save(null, { useMasterKey:true })
-            }
+//                 acc.set('durationLeft', newDuration)
+//                 await acc.save(null, { useMasterKey:true })
+//             }
             
-        }
-        //SETTING ARRAY WITH AVATAR ACCESSORIES
-        let temp = typesAccessories.map(type=>{
-            if(avatar.attributes[type] !== undefined){
-                return {
-                    durationLeft: avatar.attributes[type].attributes.durationLeft - 1,
-                    type: type
-                }
-            }
-        })
-        let accessories = temp.filter(n=> typeof(n) === 'object')
+//         }
+//         //SETTING ARRAY WITH AVATAR ACCESSORIES
+//         let temp = typesAccessories.map(type=>{
+//             if(avatar.attributes[type] !== undefined){
+//                 return {
+//                     durationLeft: avatar.attributes[type].attributes.durationLeft - 1,
+//                     type: type
+//                 }
+//             }
+//         })
+//         let accessories = temp.filter(n=> typeof(n) === 'object')
         
-        //MISSION PASSED
-        if(generated.result){
-            user.set('balanceClaim', user.attributes.balanceClaim + mission.attributes.reward)
-            await user.save(null, { useMasterKey:true })
+//         //MISSION PASSED
+//         if(generated.result){
+//             user.set('balanceClaim', user.attributes.balanceClaim + mission.attributes.reward)
+//             await user.save(null, { useMasterKey:true })
 
-            return {
-                results:{
-                    accessories: accessories,
-                    result: generated.result,
-                    roll: generated.roll,
-                    reward: mission.attributes.reward,
-                    successRate: mission.attributes.successRate,
-                    newBalance: user.attributes.balanceClaim
-                },
-                message: 'Mission successfully completed'
-            }
-        }
+//             return {
+//                 results:{
+//                     accessories: accessories,
+//                     result: generated.result,
+//                     roll: generated.roll,
+//                     reward: mission.attributes.reward,
+//                     successRate: mission.attributes.successRate,
+//                     newBalance: user.attributes.balanceClaim
+//                 },
+//                 message: 'Mission successfully completed'
+//             }
+//         }
 
-        //MISSION FAILED
-        if(!generated.result){
-            return {
-                results:{
-                    accessories: accessories,
-                    result: generated.result,
-                    roll: generated.roll,
-                    reward: mission.attributes.reward,
-                    successRate: mission.attributes.successRate,
-                    newBalance: user.attributes.balanceClaim
-                },
-                message: 'Mission failed'
-            }
-        }
+//         //MISSION FAILED
+//         if(!generated.result){
+//             return {
+//                 results:{
+//                     accessories: accessories,
+//                     result: generated.result,
+//                     roll: generated.roll,
+//                     reward: mission.attributes.reward,
+//                     successRate: mission.attributes.successRate,
+//                     newBalance: user.attributes.balanceClaim
+//                 },
+//                 message: 'Mission failed'
+//             }
+//         }
         
         
-    } catch (error) {
-        return error.message
-    }
+//     } catch (error) {
+//         return error.message
+//     }
 
-},{
-    fields:{
-        avatar_id:{
-            ...validation_id,
-            error:"avatar_id is not passed or has an error"
-        },
-        mission_id:{
-            ...validation_id,
-            error:"mission_id is not passed or has an error"
-        }
-    },
-    requireUser: true
-});
+// },{
+//     fields:{
+//         avatar_id:{
+//             ...validation_id,
+//             error:"avatar_id is not passed or has an error"
+//         },
+//         mission_id:{
+//             ...validation_id,
+//             error:"mission_id is not passed or has an error"
+//         }
+//     },
+//     requireUser: true
+// });
