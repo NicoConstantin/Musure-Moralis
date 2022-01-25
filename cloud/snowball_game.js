@@ -24,7 +24,7 @@ Moralis.Cloud.define('join_lobby', async (req) => {
 
         return {
             waiting: true,
-            message:`${avatar.attributes.name} Waiting to play`
+            message:`${avatar.attributes.name} waiting to play`
         }
 
     } catch (error) {
@@ -33,17 +33,47 @@ Moralis.Cloud.define('join_lobby', async (req) => {
     
 });
 
-Moralis.Cloud.define('create_room', async (req) => {
+Moralis.Cloud.define('get_competitor', async (req) => {
 
+    const {avatar_id, mission_number} = req.params;
+
+    try {
+
+        const query_competitor = new Moralis.Query('Lobby')
+        query_competitor.notEqualTo('avatar', avatar_id)
+        query_competitor.equalTo('missionNumber', mission_number)
+        query_competitor.equalTo('isWaiting', true)
+        const competitiorFound = await query_competitor.first({useMasterKey: true})
+
+        return {
+            found: !!competitiorFound,
+            competitor: competitiorFound.attributes.avatar
+        }
+        
+    } catch (error) {
+        return error.message;
+    }
+
+});
+
+Moralis.Cloud.define('create_room', async (req) => {
+    //tengo que chequear que ambos avatar esten en busqueda
     const { avatar_one_id, avatar_two_id, reward, mission_number } = req.params;
     const query_player_one = new Moralis.Query('Avatar')
     const query_player_two = new Moralis.Query('Avatar')
+    const query_lobby_one = new Moralis.Query('Lobby')
+    const query_lobby_two = new Moralis.Query('Lobby')
 
     try {
         
         const avatarOne = await query_player_one.get(avatar_one_id, {useMasterKey: true})
         const avatarTwo = await query_player_two.get(avatar_two_id, {useMasterKey: true})
 
+        query_lobby_one.equalTo('avatar', avatarOne)
+        query_lobby_two.equalTo('avatar', avatarTwo)
+        const lobbyOne = await query_lobby_one.first({useMasterKey: true})
+        const lobbyTwo = await query_lobby_two.first({useMasterKey: true})
+        
         const newRoom = new room();
         newRoom.set('playerOne', avatarOne);
         newRoom.set('lifeOne', 3);
@@ -58,10 +88,14 @@ Moralis.Cloud.define('create_room', async (req) => {
         newRoom.set('reward', reward)
         newRoom.set('missionNumber', mission_number)
         await newRoom.save(null, {useMasterKey: true})
+        lobbyOne.set('isWaiting', false)
+        await lobbyOne.save(null, {useMasterKey: true})
+        lobbyTwo.set('isWaiting', false)
+        await lobbyTwo.save(null, {useMasterKey: true})
         logger.info(JSON.stringify('room created'))
 
         return {
-            room: true,
+            room: newRoom,
             message: 'Room created'
         }
 
