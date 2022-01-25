@@ -1,5 +1,6 @@
 const avatarToLobby = Moralis.Object.extend('Lobby');
 const room = Moralis.Object.extend('Room');
+const movements = Moralis.Object.extend('Movements');
 
 Moralis.Cloud.define('join_lobby', async (req) => {
 
@@ -34,14 +35,14 @@ Moralis.Cloud.define('join_lobby', async (req) => {
 
 Moralis.Cloud.define('create_room', async (req) => {
 
-    const { avatar_one, avatar_two, reward } = req.params;
+    const { avatar_one_id, avatar_two_id, reward, mission_number } = req.params;
     const query_player_one = new Moralis.Query('Avatar')
     const query_player_two = new Moralis.Query('Avatar')
 
     try {
         
-        const avatarOne = await query_player_one.get(avatar_one, {useMasterKey: true})
-        const avatarTwo = await query_player_two.get(avatar_two, {useMasterKey: true})
+        const avatarOne = await query_player_one.get(avatar_one_id, {useMasterKey: true})
+        const avatarTwo = await query_player_two.get(avatar_two_id, {useMasterKey: true})
 
         const newRoom = new room();
         newRoom.set('playerOne', avatarOne);
@@ -55,11 +56,41 @@ Moralis.Cloud.define('create_room', async (req) => {
         newRoom.set('defendLeftTwo', 5);
 
         newRoom.set('reward', reward)
+        newRoom.set('missionNumber', mission_number)
         await newRoom.save(null, {useMasterKey: true})
+        logger.info(JSON.stringify('room created'))
 
         return {
             room: true,
             message: 'Room created'
+        }
+
+    } catch (error) {
+        return error.message
+    }
+    
+});
+
+Moralis.Cloud.define('do_movement', async (req) => {
+    //FALTA COMPROBAR QUE SI ATACA TENGA BOLAS Y BLA BLA
+    const { avatar_id, movement, room } = req.params;
+    const avatar_query = new Moralis.Query('Avatar');
+    const room_query = new Moralis.Query('Room');
+
+    try {
+        
+        const avatar = await avatar_query.get(avatar_id, {useMasterKey: true});
+        const roomFound = await room_query.get(room, {useMasterKey: true});
+        const new_movement = new movements();
+
+        new_movement.set('room', roomFound);
+        new_movement.set('avatar', avatar);
+        new_movement.set('movement', movement);
+        await new_movement.save(null, {useMasterKey: true});
+
+        return {
+            movement: true,
+            message: 'Movement added'
         }
 
     } catch (error) {
