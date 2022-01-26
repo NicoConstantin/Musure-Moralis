@@ -38,7 +38,11 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         newAvatar.set('owner', eggToHatch.attributes.owner)
         newAvatar.set('onSale', false)
         newAvatar.set('publishedTime', -1)
-        newAvatar.setACL(new Moralis.ACL(user))
+
+        const newACL = new Moralis.ACL()
+        newACL.setWriteAccess(user, true)
+        newACL.setPublicReadAccess(true)
+        newAvatar.setACL(newACL)
         await newAvatar.save(null, { useMasterKey:true })
     
         return {
