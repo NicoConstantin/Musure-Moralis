@@ -20,6 +20,8 @@ Moralis.Cloud.define('get_room', async (req) => {
             roomFound.set('playerTwo', avatar)
             roomFound.set('arePlaying', true)
             roomFound.set('areWaiting', false)
+            roomFound.set('lastMovementTime', getDate())
+            roomFound.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
             await roomFound.save(null,{useMasterKey: true})
 
             return {
@@ -102,7 +104,7 @@ Moralis.Cloud.define('get_data_room', async (req) => {
     }
     
 });
-//AGREGAR TURN
+
 Moralis.Cloud.define('do_movement', async (req) => {
     //FALTA COMPROBAR QUE SI ATACA TENGA BOLAS Y BLA BLA
     const { avatar_id, movement, room_id, turn } = req.params;

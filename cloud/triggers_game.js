@@ -19,14 +19,14 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
         //IDENTIFICO PLAYER1 Y PLAYER2
         let movementPlayerOne = '';
         let movementPlayerTwo = '';
-
-        if(roomPlaying.attributes.playerOne.id === avatar){
+        
+        if(roomPlaying.attributes.playerOne.id === avatar.id){
             movementPlayerOne = movement
-            movementPlayerTwo = movement_from_other
+            movementPlayerTwo = movement_from_other.attributes.movement
         }
-        if(roomPlaying.attributes.playerTwo.id === avatar){
+        if(roomPlaying.attributes.playerTwo.id === avatar.id){
             movementPlayerTwo = movement
-            movementPlayerOne = movement_from_other
+            movementPlayerOne = movement_from_other.attributes.movement
         }
 
         //CASE 1 TENGO QUE IDENTIFICAR CUAL ES PLAYERONE Y CUAL PLAYER TWO
@@ -120,6 +120,9 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
                 logger.info(JSON.stringify('Anyone did anything'))
             }
         }
+        roomPlaying.set('lastMovementTime', getDate())
+        roomPlaying.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
+        await roomPlaying.save(null, {useMasterKey: true})
     }
 
 });
