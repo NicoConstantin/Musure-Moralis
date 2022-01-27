@@ -102,10 +102,10 @@ Moralis.Cloud.define('get_data_room', async (req) => {
     }
     
 });
-
+//AGREGAR TURN
 Moralis.Cloud.define('do_movement', async (req) => {
     //FALTA COMPROBAR QUE SI ATACA TENGA BOLAS Y BLA BLA
-    const { avatar_id, movement, room_id } = req.params;
+    const { avatar_id, movement, room_id, turn } = req.params;
     const avatar_query = new Moralis.Query('Avatar');
     const room_query = new Moralis.Query('Room');
 
@@ -127,6 +127,7 @@ Moralis.Cloud.define('do_movement', async (req) => {
         new_movement.set('room', roomFound);
         new_movement.set('avatar', avatar);
         new_movement.set('movement', movement);
+        new_movement.set('turn', turn);
         await new_movement.save(null, {useMasterKey: true});
 
         return {
