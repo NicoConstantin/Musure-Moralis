@@ -3,11 +3,12 @@ Moralis.Cloud.define('get_gallery', async (req) => {
     const { filter, sort, user_id } = req.params
 
     const query_user_accessories = new Moralis.Query('Accessory');
+    const query_user = new Moralis.Query('User');
 
     try {
-
-        query_user_accessories.equalTo('owner', user_id)
-        query_user_accessories.doesNotExist("durationLeft");
+        const userAsked = await query_user.get(user_id, {useMasterKey: true})
+        query_user_accessories.equalTo('owner', userAsked)
+        query_user_accessories.equalTo("durationLeft", null);
         query_user_accessories.equalTo("power", 0);
         query_user_accessories.equalTo("onSale", true);
 

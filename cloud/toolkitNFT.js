@@ -27,7 +27,7 @@ Moralis.Cloud.define('get_economy_data', async (req) => {
 //VALIDAR FIELDS
 Moralis.Cloud.define('save_temporary_toolkit', async (req) => {
     
-    const { name, lore, rarity, amountEmit, price, file } = req.params;
+    const { name, lore, rarity, amountEmit, price, file, type } = req.params;
     const user = req.user;
 
     try {
@@ -36,6 +36,7 @@ Moralis.Cloud.define('save_temporary_toolkit', async (req) => {
         newNFT.set('name', name)
         newNFT.set('lore', lore)
         newNFT.set('rarity', rarity)
+        newNFT.set('type', type)
         newNFT.set('amountEmit', amountEmit)
         newNFT.set('price', price)
         newNFT.set('file', file)
@@ -77,6 +78,15 @@ Moralis.Cloud.define('save_temporary_toolkit', async (req) => {
                 return array.includes(val)
             },
             error: `rarity must be equal to Common, Rare, Epic, Legendary or Mythic.`
+        },
+        type:{
+            required: true,
+            type: String,
+            options: (val)=>{
+                const array = ['Sneaker', 'Head', 'Aura', 'Wing', 'Bazooka', 'Pet', 'Vehicle', 'Dance', 'Skin', 'Graffiti']
+                return array.includes(val)
+            },
+            error: `type must be one of the availables.`
         },
         price:{
             required: true,
