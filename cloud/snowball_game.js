@@ -20,7 +20,6 @@ Moralis.Cloud.define('get_room', async (req) => {
             roomFound.set('playerTwo', avatar)
             roomFound.set('arePlaying', true)
             roomFound.set('areWaiting', false)
-            roomFound.set('lastMovementTime', getDate())
             roomFound.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
             await roomFound.save(null,{useMasterKey: true})
 
@@ -43,6 +42,30 @@ Moralis.Cloud.define('get_room', async (req) => {
         return error.message;
     }
 
+},{
+    fields:{
+        avatar_id:{
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+        reward:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val > 0
+            },
+            error: 'reward must be a number greater than 0'
+        },
+        mission_number:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val >= 1
+            },
+            error: 'mission_number must be a number greater or equal than 1'
+        }
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('create_room', async (req) => {
@@ -82,6 +105,30 @@ Moralis.Cloud.define('create_room', async (req) => {
         return error.message
     }
     
+},{
+    fields:{
+        avatar_id:{
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+        reward:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val > 0
+            },
+            error: 'reward must be a number greater than 0'
+        },
+        mission_number:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val >= 1
+            },
+            error: 'mission_number must be a number greater or equal than 1'
+        }
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('get_data_room', async (req) => {
@@ -103,6 +150,14 @@ Moralis.Cloud.define('get_data_room', async (req) => {
         return error.message
     }
     
+},{
+    fields:{
+        room_id:{
+            ...validation_id,
+            error: "room_id is not passed or has an error"
+        },
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('do_movement', async (req) => {
@@ -111,7 +166,6 @@ Moralis.Cloud.define('do_movement', async (req) => {
     const avatar_query = new Moralis.Query('Avatar');
     const room_query = new Moralis.Query('Room');
 
-    
     try {
         
         const avatar = await avatar_query.get(avatar_id, {useMasterKey: true});
@@ -123,6 +177,20 @@ Moralis.Cloud.define('do_movement', async (req) => {
         }
         if(roomFound.attributes.playerTwo === avatar_id) {
             number = 'Two'
+        }
+
+        //VALIDATIONS
+        if(roomFound.attributes[`snowballs${number}`] === 0 && movement === 'attack') {
+            return "You don't have any snowball"
+        }
+        if(roomFound.attributes[`defendLeft${number}`] === 0 && movement === 'defend') {
+            return "You don't have more shields on this game"
+        }
+        if(roomFound.attributes[`snowballs${number}`] === 3 && movement === 'create') {
+            return "You can't have more than 3 snowballs"
+        }
+        if(roomFound.attributes.lifeOne === 0 || roomFound.attributes.lifeTwo === 0) {
+            return "This game is done"
         }
 
         const new_movement = new movements();
@@ -141,4 +209,33 @@ Moralis.Cloud.define('do_movement', async (req) => {
         return error.message
     }
     
+},{
+    fields:{
+        avatar_id:{
+            ...validation_id,
+            error: "avatar_id is not passed or has an error"
+        },
+        movement:{
+            required: true,
+            type: String,
+            options: val=>{
+                const options = ['attack', 'defend', 'create', 'none']
+                return options.includes(val)
+            },
+            error: 'movement must be one in specific'
+        },
+        room_id:{
+            ...validation_id,
+            error: "room_id is not passed or has an error"
+        },
+        turn:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val >= 1
+            },
+            error: 'turn must be a number greater or equal than 1'
+        }
+    },
+    requireUser: true
 });

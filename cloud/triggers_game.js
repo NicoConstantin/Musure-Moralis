@@ -4,10 +4,9 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
     const turn = req.object.get('turn')
     const room = req.object.get('room')
     const avatar = req.object.get('avatar')
-
+    
     const query_room = new Moralis.Query('Room')
     const roomPlaying = await query_room.get(room.id,{useMasterKey: true})
-
     //datos de un movement anterior en el mismo turno y sala
     const query_other_movement = new Moralis.Query('Movements')
     query_other_movement.equalTo('room', room)
@@ -120,9 +119,15 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
                 logger.info(JSON.stringify('Anyone did anything'))
             }
         }
-        roomPlaying.set('lastMovementTime', getDate())
-        roomPlaying.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
-        await roomPlaying.save(null, {useMasterKey: true})
+        if(roomPlaying.attributes.lifeOne === 0 || roomPlaying.attributes.lifeTwo === 0){
+            roomPlaying.set('nextMovementTime', -1)
+            roomPlaying.set('arePlaying', false)
+            await roomPlaying.save(null,{useMasterKey: true})
+        }
+        else{
+            roomPlaying.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
+            await roomPlaying.save(null, {useMasterKey: true})
+        }
     }
 
 });
