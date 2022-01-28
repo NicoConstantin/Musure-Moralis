@@ -119,6 +119,7 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
                 logger.info(JSON.stringify('Anyone did anything'))
             }
         }
+        //CHECKING IF IS NEED TO CLOSE THE ROOM
         if(roomPlaying.attributes.lifeOne === 0 || roomPlaying.attributes.lifeTwo === 0){
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
