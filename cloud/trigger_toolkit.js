@@ -33,7 +33,7 @@ Moralis.Cloud.afterSave('ToolkitValidating', async (req) => {
                 newNFT.set('rarityNumber', rarityChosen.attributes.rarityNumber);
                 newNFT.set('power', 0);
                 newNFT.set('owner', owner);
-                newNFT.set('durationLeft', rarityChosen.attributes.maxDuration);
+                newNFT.set('durationLeft', null);
                 newNFT.set('price', price);
                 newNFT.set('onSale', true);
                 newNFT.set('publishedTime', getDate());
