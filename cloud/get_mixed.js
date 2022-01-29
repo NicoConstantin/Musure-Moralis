@@ -53,8 +53,9 @@ Moralis.Cloud.define('get_crew_onsale', async (req) => {
         query_avatar.limit(500)
         let avatarsUser = await query_avatar.find({useMasterKey:true})
         
-        //SEARCHING FOR EGGS
+        //SEARCHING FOR ACCESSORIES
         query_accessories.equalTo('owner', user)
+        query_accessories.notEqualTo("durationLeft", null);
         query_accessories.equalTo("onSale", true);
         query_accessories.descending('publishedTime')
         query_accessories.descending('type')
