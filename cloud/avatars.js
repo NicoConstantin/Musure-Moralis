@@ -26,14 +26,12 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         query_egg_master.descending('dropRate')
         let dataToRandomizer = await query_egg_master.find()
         let rarityFound = getRandomRarity( dataToRandomizer )
-        // let power = getRandomPower( rarityFound.attributes.minPower, rarityFound.attributes.maxPower )
         
         //SETTING AVATAR FIELDS
         newAvatar.set('rarity', rarityFound.attributes.rarity)
         newAvatar.set('rarityNumber', rarityFound.attributes.rarityNumber)
-        // newAvatar.set('power', power)
         newAvatar.set('power', 0)
-        newAvatar.set('timeMine', -1)
+        newAvatar.set('playsLeft', 5)
         newAvatar.set('timeContract', -1)
         newAvatar.set('owner', eggToHatch.attributes.owner)
         newAvatar.set('onSale', false)
@@ -102,64 +100,6 @@ Moralis.Cloud.define('put_rename', async (req) => {
     },
     requireUser: true
 });
-
-//VALIDATED
-// Moralis.Cloud.define('put_join_party', async (req) => {
-
-//     const query_avatar = new Moralis.Query('Avatar');
-//     const query_party = new Moralis.Query('Party');
-
-//     const { party_id, avatar_id, time_contract} = req.params;
-
-//     try {
-//         let avatarToJoin = await query_avatar.get(avatar_id, {useMasterKey:true});
-        
-//         //VALIDATING CONTEXT
-//         if(avatarToJoin.attributes.timeContract>-1 || avatarToJoin.attributes.belongParty){
-//             return 'That avatar belongs to a party, you cannot contract other'
-//         }
-        
-//         //SETTING PARTY FIELDS
-//         let partyToJoin = await query_party.get(party_id, {useMasterKey:true});
-//         partyToJoin.addUnique('avatarsIn',avatarToJoin)
-//         await partyToJoin.save(null, {useMasterKey:true})
-
-//         //SETTING AVATAR FIELDS
-//         avatarToJoin.set('timeMine', getDate())
-//         avatarToJoin.set('timeContract', getDate(time_contract, 'hour'))
-//         avatarToJoin.set('belongParty', partyToJoin)
-//         await avatarToJoin.save(null, {useMasterKey:true})
-
-//         return {
-//             joined: true,
-//             message: "Avatar joined"
-//         }
-
-//     } catch (error) {
-//         return error.message
-//     }
-
-// },{
-//     fields:{
-//         party_id:{
-//             ...validation_id,
-//             error:"party_id is not passed or has an error"
-//         },
-//         avatar_id:{
-//             ...validation_id,
-//             error:"avatar_id is not passed or has an error"
-//         },
-//         time_contract:{
-//             required: true,
-//             type: Number,
-//             options: (val)=>{
-//                 return val >= 7
-//             },
-//             error: 'time_contract must be a number greater or equal to 7'
-//         }
-//     },
-//     requireUser: true
-// });
 
 //VALIDATED
 Moralis.Cloud.define('get_avatar', async (req) => {
@@ -268,7 +208,7 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
         if(avatarToSell.attributes.onSale){
             return 'that avatar is already on sale'
         }
-        if(avatarToSell.attributes.timeMine >= getDate()){
+        if(avatarToSell.attributes.playsLeft <= 0){
             return 'your avatar is tired, you should wait until it rests to put it up for sale'
         }
 
@@ -399,53 +339,6 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
 //             ...validation_id,
 //             error: "avatar_id is not passed or has an error"
 //         }
-//     },
-//     requireUser: true
-// });
-
-//VALIDATED
-// Moralis.Cloud.define('buy_avatar', async (req) => {
-    
-//     const query_avatar = new Moralis.Query('Avatar')
-//     const avatar_id = req.params.avatar_id;
-//     const user = req.user;
-
-//     try {
-
-//         let avatar = await query_avatar.get(avatar_id, {useMasterKey: true})
-
-//         //VALIDATING CONTEXT
-//         if(avatar.attributes.owner.id === user.id){
-//             return 'you cannot buy your own avatar'
-//         }
-//         if(!avatar.attributes.onSale){
-//             return 'this avatar is not on sale'
-//         }
-//         else{
-//             //TRANSFERING AVATAR
-//             avatar.set('price', null)
-//             avatar.set('onSale', false)
-//             avatar.set('publishedTime', -1)
-//             avatar.set('owner', user)
-//             avatar.setACL(new Moralis.ACL(user))
-//             await avatar.save(null, {useMasterKey:true})
-    
-//             return {
-//                 transferred: true,
-//                 message: 'avatar transferred'
-//             }
-//         }
-        
-//     } catch (error) {
-//         return error.message
-//     }
-// },{
-//     fields:{
-//         avatar_id: {
-//             ...validation_id,
-//             error: "avatar_id is not passed or has an error"
-//         },
-
 //     },
 //     requireUser: true
 // });
