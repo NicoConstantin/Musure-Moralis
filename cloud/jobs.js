@@ -23,7 +23,7 @@ Moralis.Cloud.job("kick_avatars_expired", async (req) =>  {
             await party.save(null, {useMasterKey: true})
             avatar.set('belongParty', null)
             avatar.set('timeContract', -1)
-            avatar.set('timeMine', -1)
+            avatar.set('playsLeft', -1)
             await avatar.save(null, {useMasterKey: true})
             
         }

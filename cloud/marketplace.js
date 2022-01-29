@@ -1,7 +1,7 @@
 //VALIDATED
 Moralis.Cloud.define('get_marketplace', async (req) => {
 
-    const { filter, sort, page, myListing, type } = req.params
+    const { filter, sort, myListing, type } = req.params
 
     //VALIDATIONS OF NON REQUIRED FIELDS
     for (const prop in filter) {
@@ -75,10 +75,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
                 query_items[sort.publishedTime]('publishedTime')
             }
         }
-        //PAGINATING
-        // if(page){
-        //     query_items.skip( page * 60 )
-        // }
         query_items.limit(1000)
         query_items.withCount()
 
@@ -204,7 +200,7 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
             newAvatar.set('rarity', avatarsData[pointerAv].name)
             newAvatar.set('rarityNumber', avatarsData[pointerAv].number)
             newAvatar.set('power', 0)
-            newAvatar.set('timeMine', -1)
+            newAvatar.set('playsLeft', -1)
             newAvatar.set('timeContract', -1)
             newAvatar.set('owner', user)
             newAvatar.set('price', getRandomPower(avatarsData[pointerAv].priceMax, avatarsData[pointerAv].priceMin))

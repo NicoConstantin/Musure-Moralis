@@ -60,7 +60,7 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
             return 'Your avatar is on sale, you cannot equip any accessory'
         }
         //REVISAR
-        if(avatar.attributes.playsLeft <= 0){
+        if(avatar.attributes.playsLeft === 0){
             return 'Your cannot equip accessories if your avatar is tired'
         }
         if(accessory.attributes.rarityNumber > avatar.attributes.rarityNumber){
@@ -125,7 +125,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
             return 'Your avatar is on sale, you cannot unequip any accessory'
         }
         //REVISAR
-        if(avatar.attributes.playsLeft <= 0){
+        if(avatar.attributes.playsLeft === 0){
             return 'Your cannot unequip accessories if your avatar is tired'
         }
 

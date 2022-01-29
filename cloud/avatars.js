@@ -31,7 +31,7 @@ Moralis.Cloud.define('mint_avatar', async (req) => {
         newAvatar.set('rarity', rarityFound.attributes.rarity)
         newAvatar.set('rarityNumber', rarityFound.attributes.rarityNumber)
         newAvatar.set('power', 0)
-        newAvatar.set('playsLeft', 5)
+        newAvatar.set('playsLeft', -1)
         newAvatar.set('timeContract', -1)
         newAvatar.set('owner', eggToHatch.attributes.owner)
         newAvatar.set('onSale', false)
@@ -208,7 +208,7 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
         if(avatarToSell.attributes.onSale){
             return 'that avatar is already on sale'
         }
-        if(avatarToSell.attributes.playsLeft <= 0){
+        if(avatarToSell.attributes.playsLeft === 0){
             return 'your avatar is tired, you should wait until it rests to put it up for sale'
         }
 
