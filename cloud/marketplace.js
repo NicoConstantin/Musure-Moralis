@@ -26,14 +26,14 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     }
     if (type === 'accessory'){
         query_items = new Moralis.Query('Accessory');
+        query_items.doesNotExist("name");
+        query_items.doesNotExist("lore");
     }
 
 
     try {
 
         query_items.equalTo('onSale', true)
-        query_items.doesNotExist("name");
-        query_items.doesNotExist("lore");
         query_items.include('owner')
         //DEFINING IF NEEDED TO SEARCH ONLY ON USER'S ITEMS
         if (myListing){

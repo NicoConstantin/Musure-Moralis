@@ -27,50 +27,6 @@ Moralis.Cloud.define('get_master_accessories', async (req) => {
 });
 
 //VALIDATED
-// Moralis.Cloud.define('mint_accessory', async (req) => {
-
-//     const query_accessory_type = new Moralis.Query('ACCESSORY_TYPE_MASTER');
-//     const query_accessory_rarity = new Moralis.Query('ACCESSORY_RARITY_MASTER');
-
-//     const user = req.user;
-
-//     try {
-//         let accessoriesTypes = await query_accessory_type.find();
-//         let accessoriesRate = await query_accessory_rarity.find();
-
-//         //GETTING RANDOMIZERS
-//         let type = getRandomType(accessoriesTypes)
-//         let rarity = getRandomRarity(accessoriesRate)
-//         let power = getRandomPower(rarity.attributes.maxPower, rarity.attributes.minPower)
-
-//         //SETTING ACCESSORY FIELDS
-//         const newAccessory = new Accesory();
-//         newAccessory.set('type', type.attributes.type)
-//         newAccessory.set('rarity', rarity.attributes.rarity)
-//         newAccessory.set('rarityNumber', rarity.attributes.rarityNumber)
-//         newAccessory.set('durationLeft', rarity.attributes.maxDuration)
-//         newAccessory.set('power', power)
-//         newAccessory.set('owner', user)
-//         newAccessory.set('onSale', false)
-//         newAccessory.set('publishedTime', -1)
-//         newAccessory.setACL(new Moralis.ACL(user))
-//         await newAccessory.save(null, { useMasterKey:true })
-        
-//         return {
-//            created: true,
-//            accessory: newAccessory,
-//            message: "Accessory created"
-//         }
-        
-//     } catch (error) {
-//         return error.message
-//     }
-
-// },{
-//     requireUser: true
-// });
-
-//VALIDATED
 Moralis.Cloud.define('equip_accessory', async (req) => {
     
     const query_accessory = new Moralis.Query('Accessory');
@@ -103,7 +59,8 @@ Moralis.Cloud.define('equip_accessory', async (req) => {
         if(avatar.attributes.onSale){
             return 'Your avatar is on sale, you cannot equip any accessory'
         }
-        if(avatar.attributes.timeMine >= getDate()){
+        //REVISAR
+        if(avatar.attributes.playsLeft <= 0){
             return 'Your cannot equip accessories if your avatar is tired'
         }
         if(accessory.attributes.rarityNumber > avatar.attributes.rarityNumber){
@@ -167,7 +124,8 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
         if(avatar.attributes.onSale){
             return 'Your avatar is on sale, you cannot unequip any accessory'
         }
-        if(avatar.attributes.timeMine >= getDate()){
+        //REVISAR
+        if(avatar.attributes.playsLeft <= 0){
             return 'Your cannot unequip accessories if your avatar is tired'
         }
 
@@ -205,6 +163,7 @@ Moralis.Cloud.define('unequip_accessory', async (req) => {
     requireUser: true 
 });
 //VALIDATED
+
 Moralis.Cloud.define('get_accessories', async (req) => {
 
     const { filter, sort } = req.params
@@ -338,53 +297,6 @@ Moralis.Cloud.define('kick_onsale_accessory', async (req) => {
             ...validation_id,
             error: "accessory_id is not passed or has an error"
         },
-    },
-    requireUser: true
-});
-
-//VALIDATED
-Moralis.Cloud.define('buy_accessory', async (req) => {
-    
-    const query_accessory = new Moralis.Query('Accessory')
-    const accessory_id = req.params.accessory_id;
-    const user = req.user;
-
-    try {
-
-        let accessory = await query_accessory.get(accessory_id, {useMasterKey: true})
-
-        //VALIDATING CONTEXT
-        if(accessory.attributes.owner.id === user.id){
-            return 'you cannot buy your own accessory'
-        }
-        if(!accessory.attributes.onSale){
-            return 'this accessory is not on sale'
-        }
-        else{
-            //TRANSFERING ACCESSORY
-            accessory.set('price', null)
-            accessory.set('onSale', false)
-            accessory.set('publishedTime', -1)
-            accessory.set('owner', user)
-            accessory.setACL(new Moralis.ACL(user))
-            await accessory.save(null, {useMasterKey:true})
-    
-            return {
-                transferred: true,
-                message: 'accessory transferred'
-            }
-        }
-        
-    } catch (error) {
-        return error.message
-    }
-},{
-    fields:{
-        accessory_id: {
-            ...validation_id,
-            error: "accessory_id is not passed or has an error"
-        },
-
     },
     requireUser: true
 });
