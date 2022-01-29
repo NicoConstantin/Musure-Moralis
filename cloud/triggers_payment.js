@@ -89,7 +89,7 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             await partyToJoin.save(null, {useMasterKey:true})
 
             //SETTING AVATAR FIELDS
-            avatarToJoin.set('timeMine', getDate())
+            avatarToJoin.set('playsLeft', 5)
             avatarToJoin.set('timeContract', getDate(extra_data, 'hour'))
             avatarToJoin.set('belongParty', partyToJoin)
             await avatarToJoin.save(null, {useMasterKey:true})

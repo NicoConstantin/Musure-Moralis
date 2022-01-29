@@ -168,7 +168,7 @@ Moralis.Cloud.define('kick_avatar_party', async (req) => {
             //SETTING AVATAR FIELDS
             avatar.set('belongParty', null)
             avatar.set('timeContract', -1)
-            avatar.set('timeMine', -1)
+            avatar.set('playsLeft', -1)
             await avatar.save(null, {useMasterKey:true})
 
         }

@@ -41,7 +41,7 @@ Moralis.Cloud.define('payment', async (req) => {
             required: true,
             type: String,
             options: val=>{
-                const options = ['egg', 'party', 'accessory', 'marketAvatar', 'marketAccessory']
+                const options = ['egg', 'party', 'accessory', 'marketAvatar', 'marketAccessory', 'nftCreation']
                 return options.includes(val)
             },
             error: 'reference must be specific'
