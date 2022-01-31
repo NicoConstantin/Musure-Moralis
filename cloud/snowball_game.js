@@ -10,14 +10,18 @@ Moralis.Cloud.define('get_room', async (req) => {
     try {
 
         query_existent_room.equalTo('playerTwo', null)
-        query_existent_room.equalTo('missionNumber', mission_number)
-        query_existent_room.equalTo('reward', reward)
+        query_existent_room.equalTo('rewardTwo', null)
+        query_existent_room.equalTo('missionTwo', null)
+        query_existent_room.equalTo('arePlaying', false)
+        query_existent_room.equalTo('areWaiting', true)
         const roomFound = await query_existent_room.first({useMasterKey: true})
 
         if(roomFound){
             //UNIRLO
             const avatar = await avatarToPoint.get(avatar_id, {useMasterKey: true})
             roomFound.set('playerTwo', avatar)
+            roomFound.set('rewardTwo', reward)
+            roomFound.set('missionTwo', mission_number)
             roomFound.set('arePlaying', true)
             roomFound.set('areWaiting', false)
             roomFound.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
@@ -69,8 +73,7 @@ Moralis.Cloud.define('get_room', async (req) => {
 });
 
 Moralis.Cloud.define('create_room', async (req) => {
-    //tengo que chequear que ambos avatar esten en busqueda
-    const { avatar_id,  reward, mission_number } = req.params;
+    const { avatar_id, reward, mission_number } = req.params;
     const query_player = new Moralis.Query('Avatar')
 
     try {
@@ -79,17 +82,19 @@ Moralis.Cloud.define('create_room', async (req) => {
         
         const newRoom = new room();
         newRoom.set('playerOne', avatarOne);
+        newRoom.set('rewardOne', reward);
+        newRoom.set('missionOne', mission_number);
         newRoom.set('lifeOne', 3);
         newRoom.set('snowballsOne', 1);
         newRoom.set('defendLeftOne', 5);
 
         newRoom.set('playerTwo', null);
+        newRoom.set('rewardTwo', null);
+        newRoom.set('missionTwo', null);
         newRoom.set('lifeTwo', 3);
         newRoom.set('snowballsTwo', 1);
         newRoom.set('defendLeftTwo', 5);
 
-        newRoom.set('reward', reward)
-        newRoom.set('missionNumber', mission_number)
         newRoom.set('arePlaying', false)
         newRoom.set('areWaiting', true)
 
@@ -161,7 +166,7 @@ Moralis.Cloud.define('get_data_room', async (req) => {
 });
 
 Moralis.Cloud.define('do_movement', async (req) => {
-    //FALTA COMPROBAR QUE SI ATACA TENGA BOLAS Y BLA BLA
+
     const { avatar_id, movement, room_id, turn } = req.params;
     const avatar_query = new Moralis.Query('Avatar');
     const room_query = new Moralis.Query('Room');
@@ -180,6 +185,10 @@ Moralis.Cloud.define('do_movement', async (req) => {
         }
 
         //VALIDATIONS
+        if(roomFound.attributes.nextMovementTime < getDate()){
+            return 'Turn time has been passed'
+        }
+        
         if(roomFound.attributes[`snowballs${number}`] === 0 && movement === 'attack') {
             return "You don't have any snowball"
         }
