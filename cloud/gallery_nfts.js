@@ -13,15 +13,15 @@ Moralis.Cloud.define('get_gallery', async (req) => {
         query_user_accessories.equalTo("onSale", true);
 
         for (const prop in filter) {
-            if(prop !== "type" && typeof(filter[prop]) !== 'number' ){
+            if(prop && prop !== "type" && typeof(filter[prop]) !== 'number' ){
                 return 'a filter property is not a number'
             }
-            if(prop === "type" && typeof(filter[prop]) !== 'string' ){
+            if(prop && prop === "type" && typeof(filter[prop]) !== 'string' ){
                 return 'filter type must be a string'
             }
         }
         for (const prop in sort) {
-            if(sort[prop] !== 'ascending' && sort[prop] !== 'descending'){
+            if(prop && sort[prop] !== 'ascending' && sort[prop] !== 'descending'){
                 return 'sort properties must be equal to ascending or descending'
             }
         }

@@ -1,14 +1,16 @@
 Moralis.Cloud.afterSave("Movements", async (req) => {
+    const query_room = new Moralis.Query('Room')
+    const query_other_movement = new Moralis.Query('Movements')
+    
     //Datos del movement que activa la logica
     const movement = req.object.get('movement')
     const turn = req.object.get('turn')
     const room = req.object.get('room')
     const avatar = req.object.get('avatar')
     
-    const query_room = new Moralis.Query('Room')
     const roomPlaying = await query_room.get(room.id,{useMasterKey: true})
+
     //datos de un movement anterior en el mismo turno y sala
-    const query_other_movement = new Moralis.Query('Movements')
     query_other_movement.equalTo('room', room)
     query_other_movement.equalTo('turn', turn)
     query_other_movement.notEqualTo('avatar', avatar)
@@ -28,7 +30,7 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             movementPlayerOne = movement_from_other.attributes.movement
         }
 
-        //CASE 1 TENGO QUE IDENTIFICAR CUAL ES PLAYERONE Y CUAL PLAYER TWO
+        //CASE 1
         if(movementPlayerOne === 'attack' ){
             if(movementPlayerTwo === 'attack'){
                 roomPlaying.set('lifeOne', roomPlaying.attributes.lifeOne - 1)
@@ -120,7 +122,15 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             }
         }
         //CHECKING IF IS NEED TO CLOSE THE ROOM
-        if(roomPlaying.attributes.lifeOne === 0 || roomPlaying.attributes.lifeTwo === 0){
+        if(roomPlaying.attributes.lifeOne === 0){
+            //PAY TO PLAYER2
+            
+            roomPlaying.set('nextMovementTime', -1)
+            roomPlaying.set('arePlaying', false)
+            await roomPlaying.save(null,{useMasterKey: true})
+        }
+        if(roomPlaying.attributes.lifeTwo === 0){
+            //PAY TO PLAYER1
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
             await roomPlaying.save(null,{useMasterKey: true})

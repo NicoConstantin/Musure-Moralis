@@ -6,8 +6,8 @@ Moralis.Cloud.define('payment', async (req) => {
     const user = req.user
     
     try {
-        if(data && (data.length > 3 || !Array.isArray(data)) ) {
-            return 'data must be an array and have a maximum of 3 positions'
+        if(data && (data.length > 7 || !Array.isArray(data)) ) {
+            return 'data must be an array and have a maximum of 7 positions'
         }
         const newTransferPending = new MusureTransferPending();
         newTransferPending.set('account', user.attributes.accounts[0])

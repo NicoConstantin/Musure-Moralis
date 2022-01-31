@@ -16,8 +16,8 @@ Moralis.Cloud.define('get_room', async (req) => {
         query_existent_room.equalTo('areWaiting', true)
         const roomFound = await query_existent_room.first({useMasterKey: true})
 
+        //JOIN - START GAME - REST PLAYSLEFT, ACC DURATION
         if(roomFound){
-            //UNIRLO
             const avatar = await avatarToPoint.get(avatar_id, {useMasterKey: true})
             roomFound.set('playerTwo', avatar)
             roomFound.set('rewardTwo', reward)
@@ -188,7 +188,7 @@ Moralis.Cloud.define('do_movement', async (req) => {
         if(roomFound.attributes.nextMovementTime < getDate()){
             return 'Turn time has been passed'
         }
-        
+
         if(roomFound.attributes[`snowballs${number}`] === 0 && movement === 'attack') {
             return "You don't have any snowball"
         }

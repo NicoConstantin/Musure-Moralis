@@ -49,16 +49,16 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             let accessoriesRate = await query_accessory_rarity.find();
 
             //GETTING RANDOMIZERS
-            let type = getRandomType(accessoriesTypes)
-            let rarity = getRandomRarity(accessoriesRate)
-            let power = getRandomPower(rarity.attributes.maxPower, rarity.attributes.minPower)
+            let typeAcc = getRandomType(accessoriesTypes)
+            let rarityAcc = getRandomRarity(accessoriesRate)
+            let power = getRandomPower(rarityAcc.attributes.maxPower, rarityAcc.attributes.minPower)
 
             //SETTING ACCESSORY FIELDS
             const newAccessory = new Accesory();
-            newAccessory.set('type', type.attributes.type)
-            newAccessory.set('rarity', rarity.attributes.rarity)
-            newAccessory.set('rarityNumber', rarity.attributes.rarityNumber)
-            newAccessory.set('durationLeft', rarity.attributes.maxDuration)
+            newAccessory.set('type', typeAcc.attributes.type)
+            newAccessory.set('rarity', rarityAcc.attributes.rarity)
+            newAccessory.set('rarityNumber', rarityAcc.attributes.rarityNumber)
+            newAccessory.set('durationLeft', rarityAcc.attributes.maxDuration)
             newAccessory.set('power', power)
             newAccessory.set('owner', user)
             newAccessory.set('onSale', false)
@@ -147,10 +147,36 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
 
             logger.info(JSON.stringify('ACCESSORY TRANSFERED'))
             break;
-      
+
+        case 'nftCreation':
+    
+        const name = transferToProcess.attributes.data[0];
+        const lore = transferToProcess.attributes.data[1];
+        const rarity = transferToProcess.attributes.data[2];
+        const amountEmit = transferToProcess.attributes.data[3];
+        const price = transferToProcess.attributes.data[4];
+        const file = transferToProcess.attributes.data[5];
+        const type = transferToProcess.attributes.data[6];
+
+
+        const newNFT = new toolkitObj();
+        newNFT.set('name', name)
+        newNFT.set('lore', lore)
+        newNFT.set('rarity', rarity)
+        newNFT.set('type', type)
+        newNFT.set('amountEmit', Number(amountEmit))
+        newNFT.set('price', Number(price))
+        newNFT.set('file', file)
+        newNFT.set('owner', user)
+        newNFT.set('validated', false)
+        await newNFT.save(null, { useMasterKey: true})
+        
+        logger.info(JSON.stringify('NFT Data saved'))
+        break;
+
         default:
-            break;
-      }
+        break;
+    }
 
       await transferToProcess.destroy({useMasterKey:true})
     }
