@@ -4,22 +4,58 @@ const movements = Moralis.Object.extend('Movements');
 Moralis.Cloud.define('get_room', async (req) => {
 
     const {avatar_id, mission_number, reward} = req.params;
-    const avatarToPoint = new Moralis.Query('Avatar')
+    const query_avatar_one = new Moralis.Query('Avatar')
+    const query_avatar_two = new Moralis.Query('Avatar')
     const query_existent_room = new Moralis.Query('Room')
-
+    
+    
     try {
+        
+        const avatarTwo = await query_avatar_two.get(avatar_id, {useMasterKey: true})
+        if(avatarTwo.attributes.playsLeft <= 0) {
+            return "You don't have more plays left, wait till tomorrow"
+        }
 
         query_existent_room.equalTo('playerTwo', null)
         query_existent_room.equalTo('rewardTwo', null)
         query_existent_room.equalTo('missionTwo', null)
         query_existent_room.equalTo('arePlaying', false)
         query_existent_room.equalTo('areWaiting', true)
+        query_existent_room.include('playerOne')
         const roomFound = await query_existent_room.first({useMasterKey: true})
 
         //JOIN - START GAME - REST PLAYSLEFT, ACC DURATION
         if(roomFound){
-            const avatar = await avatarToPoint.get(avatar_id, {useMasterKey: true})
-            roomFound.set('playerTwo', avatar)
+            const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti'];
+            for (let i = 0; i < typesAccessories.length; i++) {
+                query_avatar_one.include(typesAccessories[i])
+                query_avatar_two.include(typesAccessories[i])
+            }
+            const avatarOne = await  query_avatar_one.get(roomFound.attributes.playerOne.id, {useMasterKey: true}) 
+
+
+            //SETTING AVATAR ONE AND OWNER ONE THINGS
+            //ONE
+            for (const key in avatarOne.attributes) {
+                if (typesAccessories.includes(key)) {
+                    avatarOne.attributes[key].set('durationLeft', avatarOne.attributes[key].attributes.durationLeft - 1)
+                    await avatarOne.attributes[key].save(null, {useMasterKey: true})
+                }
+            }
+            avatarOne.set('playsLeft', avatarOne.attributes.playsLeft - 1)
+            await avatarOne.save(null, {useMasterKey: true})
+
+            //TWO
+            for (const key in avatarTwo.attributes) {
+                if (typesAccessories.includes(key)) {
+                    avatarTwo.attributes[key].set('durationLeft', avatarTwo.attributes[key].attributes.durationLeft - 1)
+                    await avatarTwo.attributes[key].save(null, {useMasterKey: true})
+                }
+            }
+            avatarTwo.set('playsLeft', avatarTwo.attributes.playsLeft - 1)
+            await avatarTwo.save(null, {useMasterKey: true})
+
+            roomFound.set('playerTwo', avatarTwo)
             roomFound.set('rewardTwo', reward)
             roomFound.set('missionTwo', mission_number)
             roomFound.set('arePlaying', true)
@@ -79,6 +115,9 @@ Moralis.Cloud.define('create_room', async (req) => {
     try {
         
         const avatarOne = await query_player.get(avatar_id, {useMasterKey: true})
+        if(avatarOne.attributes.playsLeft <= 0) {
+            return "You don't have more plays left, wait till tomorrow"
+        }
         
         const newRoom = new room();
         newRoom.set('playerOne', avatarOne);
@@ -245,6 +284,35 @@ Moralis.Cloud.define('do_movement', async (req) => {
             },
             error: 'turn must be a number greater or equal than 1'
         }
+    },
+    requireUser: true
+});
+
+Moralis.Cloud.define('delete_room', async (req) => {
+    
+    const room_id = req.params.room_id;
+    const query_room = new Moralis.Query('Room')
+
+    try {
+        const roomFound = await query_room.get(room_id, {useMasterKey: true})
+
+        await roomFound.destroy({useMasterKey: true})
+
+        return {
+            deleted: true,
+            message: 'Room deleted'
+        }
+
+    } catch (error) {
+        return error.message
+    }
+    
+},{
+    fields:{
+        room_id:{
+            ...validation_id,
+            error: "room_id is not passed or has an error"
+        },
     },
     requireUser: true
 });

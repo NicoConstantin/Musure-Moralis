@@ -7,7 +7,9 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
     const turn = req.object.get('turn')
     const room = req.object.get('room')
     const avatar = req.object.get('avatar')
-    
+
+    query_room.include('playerTwo')
+    query_room.include('playerOne')
     const roomPlaying = await query_room.get(room.id,{useMasterKey: true})
 
     //datos de un movement anterior en el mismo turno y sala
@@ -122,15 +124,24 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             }
         }
         //CHECKING IF IS NEED TO CLOSE THE ROOM
-        if(roomPlaying.attributes.lifeOne === 0){
+        if(roomPlaying.attributes.lifeOne <= 0){
             //PAY TO PLAYER2
-            
+            const owner_query = new Moralis.Query('User')
+            let ownerToPay = await owner_query.get(roomPlaying.attributes.playerTwo.attributes.owner.id,{useMasterKey: true})
+            ownerToPay.set('balanceClaim', ownerToPay.attributes.balanceClaim + roomPlaying.attributes.rewardTwo)
+            await ownerToPay.save(null, {useMasterKey: true})
+
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
             await roomPlaying.save(null,{useMasterKey: true})
         }
-        if(roomPlaying.attributes.lifeTwo === 0){
+        if(roomPlaying.attributes.lifeTwo <= 0){
             //PAY TO PLAYER1
+            const owner_query = new Moralis.Query('User')
+            let ownerToPay = await owner_query.get(roomPlaying.attributes.playerOne.attributes.owner.id,{useMasterKey: true})
+            ownerToPay.set('balanceClaim', ownerToPay.attributes.balanceClaim + roomPlaying.attributes.rewardOne)
+            await ownerToPay.save(null, {useMasterKey: true})
+
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
             await roomPlaying.save(null,{useMasterKey: true})
