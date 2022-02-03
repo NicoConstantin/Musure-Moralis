@@ -357,4 +357,27 @@ Moralis.Cloud.define('get_movements', async (req) => {
         return error.message
     }
 
+},{
+    fields:{
+        room_id:{
+            ...validation_id,
+            error: "room_id is not passed or has an error"
+        },
+        avatar_one_id:{
+            ...validation_id,
+            error: "avatar_one_id is not passed or has an error"
+        },
+        avatar_two_id:{
+            ...validation_id,
+            error: "avatar_two_id is not passed or has an error"
+        },
+        turn:{
+            required: true,
+            type: Number,
+            options: val=>{
+                return val >= 1
+            },
+            error: 'turn must be a number greater or equal than 1'
+        }
+    }
 });
