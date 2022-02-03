@@ -224,9 +224,9 @@ Moralis.Cloud.define('do_movement', async (req) => {
         }
 
         //VALIDATIONS
-        if(roomFound.attributes.nextMovementTime < getDate()){
-            return 'Turn time has been passed'
-        }
+        // if(roomFound.attributes.nextMovementTime < getDate()){
+        //     return 'Turn time has been passed'
+        // }
 
         if(roomFound.attributes[`snowballs${number}`] === 0 && movement === 'attack') {
             return "You don't have any snowball"
@@ -315,4 +315,46 @@ Moralis.Cloud.define('delete_room', async (req) => {
         },
     },
     requireUser: true
+});
+
+
+Moralis.Cloud.define('get_movements', async (req) => {
+
+    const {avatar_one_id, avatar_two_id, turn, room_id} = req.params;
+
+    const movement_one_query = new Moralis.Query('Movements')
+    const movement_two_query = new Moralis.Query('Movements')
+
+    const query_room = new Moralis.Query('Room')
+    const query_avatar_one = new Moralis.Query('Avatar')
+    const query_avatar_two = new Moralis.Query('Avatar')
+
+    try {
+        
+        const room = await query_room.get(room_id, {useMasterKey: true})
+        const avatarOne = await query_avatar_one.get(avatar_one_id, {useMasterKey: true})
+        const avatarTwo = await query_avatar_two.get(avatar_two_id, {useMasterKey: true})
+
+        //MOVEMENT PLAYER ONE
+        movement_one_query.equalTo('turn', turn)
+        movement_one_query.equalTo('room', room)
+        movement_one_query.equalTo('avatar', avatarOne)
+        const movementOne = await movement_one_query.first({useMasterKey: true})
+
+        //MOVEMENT PLAYER TWO
+        movement_two_query.equalTo('turn', turn)
+        movement_two_query.equalTo('room', room)
+        movement_two_query.equalTo('avatar', avatarTwo)
+        const movementTwo = await query_avatar_two.first({useMasterKey: true})
+
+        return {
+            movementOne: movementOne,
+            movementTwo: movementTwo,
+            message: `Both movements required from turn ${turn}`
+        }
+
+    } catch (error) {
+        return error.message
+    }
+
 });

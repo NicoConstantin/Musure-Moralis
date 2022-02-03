@@ -34,4 +34,32 @@ Moralis.Cloud.job("kick_avatars_expired", async (req) =>  {
     } catch (error) {
         return error.message
     }
-  });
+});
+
+
+Moralis.Cloud.job("renew_playsLeft", async (req) =>  {
+
+    req.message("Looking for avatars");
+
+    const query_avatars = new Moralis.Query('Avatar');
+
+    try {
+        
+        let allAvatars = await query_avatars.find({useMasterKey: true})
+        
+        for (let i = 0; i < allAvatars.length; i++) {
+            let avatar = allAvatars[i]
+            if(avatar.attributes.timeContract > 0){
+                avatar.set('playsLeft', 5)
+                await avatar.save(null, {useMasterKey: true})
+            }
+            
+        }
+        req.message('Avatars playsLeft renewed')
+        return 'Avatars playsLeft renewed'
+
+
+    } catch (error) {
+        return error.message
+    }
+});

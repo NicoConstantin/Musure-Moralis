@@ -124,6 +124,12 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             }
         }
         //CHECKING IF IS NEED TO CLOSE THE ROOM
+        if(roomPlaying.attributes.lifeOne <= 0 && roomPlaying.attributes.lifeTwo <= 0){
+            //CASO DE EMPATE
+            logger.info(JSON.stringify('EMPATARON'))
+            return;
+        }
+
         if(roomPlaying.attributes.lifeOne <= 0){
             //PAY TO PLAYER2
             const owner_query = new Moralis.Query('User')
@@ -134,6 +140,7 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
             await roomPlaying.save(null,{useMasterKey: true})
+            return;
         }
         if(roomPlaying.attributes.lifeTwo <= 0){
             //PAY TO PLAYER1
@@ -145,10 +152,12 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             roomPlaying.set('nextMovementTime', -1)
             roomPlaying.set('arePlaying', false)
             await roomPlaying.save(null,{useMasterKey: true})
+            return;
         }
         else{
             roomPlaying.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
             await roomPlaying.save(null, {useMasterKey: true})
+            return;
         }
     }
 
