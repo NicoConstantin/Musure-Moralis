@@ -19,6 +19,8 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
     const movement_from_other = await query_other_movement.first({useMasterKey: true})
 
     if(roomPlaying.attributes.arePlaying && movement_from_other){
+
+        logger.info(JSON.stringify('ENTRE'))
         //IDENTIFICO PLAYER1 Y PLAYER2
         let movementPlayerOne = '';
         let movementPlayerTwo = '';
@@ -31,6 +33,9 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             movementPlayerTwo = movement
             movementPlayerOne = movement_from_other.attributes.movement
         }
+
+        roomPlaying.set('turn', roomPlaying.attributes.turn + 1)
+        await roomPlaying.save(null, {useMasterKey: true})
 
         //CASE 1
         if(movementPlayerOne === 'attack' ){
@@ -48,7 +53,7 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             }
             if(movementPlayerTwo === 'create'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne - 1)
-                roomPlaying.set('snowballsTwo', roomPlaying.attributes.defendLeftTwo + 1)
+                roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo + 1)
                 roomPlaying.set('lifeTwo', roomPlaying.attributes.lifeTwo - 1)
                 await roomPlaying.save(null,{useMasterKey: true})
             }

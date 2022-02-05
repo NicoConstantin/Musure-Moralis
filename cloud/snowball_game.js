@@ -60,6 +60,7 @@ Moralis.Cloud.define('get_room', async (req) => {
             roomFound.set('missionTwo', mission_number)
             roomFound.set('arePlaying', true)
             roomFound.set('areWaiting', false)
+            roomFound.set('turn', 1)
             roomFound.set('nextMovementTime', getDate(cooldown_game_time, cooldown_game_type))
             await roomFound.save(null,{useMasterKey: true})
 
@@ -209,35 +210,42 @@ Moralis.Cloud.define('do_movement', async (req) => {
     const { avatar_id, movement, room_id, turn } = req.params;
     const avatar_query = new Moralis.Query('Avatar');
     const room_query = new Moralis.Query('Room');
+    const movement_query = new Moralis.Query('Movements')
 
     try {
-        
         const avatar = await avatar_query.get(avatar_id, {useMasterKey: true});
+        room_query.include('playerOne')
+        room_query.include('playerTwo')
         const roomFound = await room_query.get(room_id, {useMasterKey: true});
+        
+        movement_query.equalTo('avatar', avatar)
+        movement_query.equalTo('turn', turn)
+        movement_query.equalTo('room', roomFound)
+        const otherMovementSameTurn = await movement_query.first({useMasterKey: true})
 
-        const number = ''
-        if(roomFound.attributes.playerOne === avatar_id) {
+
+        let number = ''
+        if(roomFound.attributes.playerOne.id === avatar_id) {
             number = 'One'
         }
-        if(roomFound.attributes.playerTwo === avatar_id) {
+        if(roomFound.attributes.playerTwo.id === avatar_id) {
             number = 'Two'
         }
 
         //VALIDATIONS
-        // if(roomFound.attributes.nextMovementTime < getDate()){
-        //     return 'Turn time has been passed'
-        // }
-
-        if(roomFound.attributes[`snowballs${number}`] === 0 && movement === 'attack') {
+        if(otherMovementSameTurn){
+            return 'You already move on this turn'
+        }
+        if(roomFound.attributes[`snowballs${number}`] <= 0 && movement === 'attack') {
             return "You don't have any snowball"
         }
-        if(roomFound.attributes[`defendLeft${number}`] === 0 && movement === 'defend') {
+        if(roomFound.attributes[`defendLeft${number}`] <= 0 && movement === 'defend') {
             return "You don't have more shields on this game"
         }
-        if(roomFound.attributes[`snowballs${number}`] === 3 && movement === 'create') {
+        if(roomFound.attributes[`snowballs${number}`] >= 3 && movement === 'create') {
             return "You can't have more than 3 snowballs"
         }
-        if(roomFound.attributes.lifeOne === 0 || roomFound.attributes.lifeTwo === 0) {
+        if(roomFound.attributes.lifeOne <= 0 || roomFound.attributes.lifeTwo <= 0) {
             return "This game is done"
         }
 
