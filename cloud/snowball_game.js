@@ -330,12 +330,12 @@ Moralis.Cloud.define('get_movements', async (req) => {
 
     const {avatar_one_id, avatar_two_id, turn, room_id} = req.params;
 
-    const movement_one_query = new Moralis.Query('Movements')
-    const movement_two_query = new Moralis.Query('Movements')
-
     const query_room = new Moralis.Query('Room')
     const query_avatar_one = new Moralis.Query('Avatar')
     const query_avatar_two = new Moralis.Query('Avatar')
+
+    const movement_one_query = new Moralis.Query('Movements')
+    const movement_two_query = new Moralis.Query('Movements')
 
     try {
         
@@ -353,7 +353,7 @@ Moralis.Cloud.define('get_movements', async (req) => {
         movement_two_query.equalTo('turn', turn)
         movement_two_query.equalTo('room', room)
         movement_two_query.equalTo('avatar', avatarTwo)
-        const movementTwo = await query_avatar_two.first({useMasterKey: true})
+        const movementTwo = await movement_two_query.first({useMasterKey: true})
 
         return {
             movementOne: movementOne,
