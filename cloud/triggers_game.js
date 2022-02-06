@@ -35,7 +35,6 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
         }
 
         roomPlaying.set('turn', roomPlaying.attributes.turn + 1)
-        await roomPlaying.save(null, {useMasterKey: true})
 
         //CASE 1
         if(movementPlayerOne === 'attack' ){
@@ -44,23 +43,19 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
                 roomPlaying.set('lifeTwo', roomPlaying.attributes.lifeTwo - 1)
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'defend'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne - 1)
                 roomPlaying.set('defendLeftTwo', roomPlaying.attributes.defendLeftTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'create'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo + 1)
                 roomPlaying.set('lifeTwo', roomPlaying.attributes.lifeTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'none'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne - 1)
                 roomPlaying.set('lifeTwo', roomPlaying.attributes.lifeTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
         }
         //CASE 2
@@ -68,22 +63,18 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             if(movementPlayerTwo === 'attack'){
                 roomPlaying.set('defendLeftOne', roomPlaying.attributes.defendLeftOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'defend'){
                 roomPlaying.set('defendLeftOne', roomPlaying.attributes.defendLeftOne - 1)
                 roomPlaying.set('defendLeftTwo', roomPlaying.attributes.defendLeftTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
                 
             }
             if(movementPlayerTwo === 'create'){
                 roomPlaying.set('defendLeftOne', roomPlaying.attributes.defendLeftOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo + 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'none'){
                 roomPlaying.set('defendLeftOne', roomPlaying.attributes.defendLeftOne - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
         }
         //CASE 3
@@ -92,21 +83,17 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne + 1)
                 roomPlaying.set('lifeOne', roomPlaying.attributes.lifeOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'defend'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne + 1)
                 roomPlaying.set('defendLeftTwo', roomPlaying.attributes.defendLeftTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'create'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne + 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo + 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'none'){
                 roomPlaying.set('snowballsOne', roomPlaying.attributes.snowballsOne + 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
         }
         //CASE 4
@@ -114,15 +101,12 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
             if(movementPlayerTwo === 'attack'){
                 roomPlaying.set('lifeOne', roomPlaying.attributes.lifeOne - 1)
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'defend'){
                 roomPlaying.set('defendLeftTwo', roomPlaying.attributes.defendLeftTwo - 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'create'){
                 roomPlaying.set('snowballsTwo', roomPlaying.attributes.snowballsTwo + 1)
-                await roomPlaying.save(null,{useMasterKey: true})
             }
             if(movementPlayerTwo === 'none'){
                 logger.info(JSON.stringify('Anyone did anything'))

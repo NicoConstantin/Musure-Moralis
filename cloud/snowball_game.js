@@ -10,12 +10,6 @@ Moralis.Cloud.define('get_room', async (req) => {
     
     
     try {
-        
-        const avatarTwo = await query_avatar_two.get(avatar_id, {useMasterKey: true})
-        if(avatarTwo.attributes.playsLeft <= 0) {
-            return "You don't have more plays left, wait till tomorrow"
-        }
-
         query_existent_room.equalTo('playerTwo', null)
         query_existent_room.equalTo('rewardTwo', null)
         query_existent_room.equalTo('missionTwo', null)
@@ -23,7 +17,7 @@ Moralis.Cloud.define('get_room', async (req) => {
         query_existent_room.equalTo('areWaiting', true)
         query_existent_room.include('playerOne')
         const roomFound = await query_existent_room.first({useMasterKey: true})
-
+        
         //JOIN - START GAME - REST PLAYSLEFT, ACC DURATION
         if(roomFound){
             const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti'];
@@ -32,7 +26,10 @@ Moralis.Cloud.define('get_room', async (req) => {
                 query_avatar_two.include(typesAccessories[i])
             }
             const avatarOne = await  query_avatar_one.get(roomFound.attributes.playerOne.id, {useMasterKey: true}) 
-
+            const avatarTwo = await query_avatar_two.get(avatar_id, {useMasterKey: true})
+            if(avatarTwo.attributes.playsLeft <= 0) {
+                return "You don't have more plays left, wait till tomorrow"
+            }
 
             //SETTING AVATAR ONE AND OWNER ONE THINGS
             //ONE

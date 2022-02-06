@@ -149,7 +149,7 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             break;
 
         case 'nftCreation':
-    
+        const AccesoryNFT = Moralis.Object.extend('Accessory');
         const name = transferToProcess.attributes.data[0];
         const lore = transferToProcess.attributes.data[1];
         const rarity = transferToProcess.attributes.data[2];
@@ -158,20 +158,47 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
         const file = transferToProcess.attributes.data[5];
         const type = transferToProcess.attributes.data[6];
 
-
-        const newNFT = new toolkitObj();
-        newNFT.set('name', name)
-        newNFT.set('lore', lore)
-        newNFT.set('rarity', rarity)
-        newNFT.set('type', type)
-        newNFT.set('amountEmit', Number(amountEmit))
-        newNFT.set('price', Number(price))
-        newNFT.set('file', file)
-        newNFT.set('owner', user)
-        newNFT.set('validated', false)
-        await newNFT.save(null, { useMasterKey: true})
+        // const newNFT = new toolkitObj();
+        // newNFT.set('name', name)
+        // newNFT.set('lore', lore)
+        // newNFT.set('rarity', rarity)
+        // newNFT.set('type', type)
+        // newNFT.set('amountEmit', Number(amountEmit))
+        // newNFT.set('price', Number(price))
+        // newNFT.set('file', file)
+        // newNFT.set('owner', user)
+        // newNFT.set('validated', false)
+        // await newNFT.save(null, { useMasterKey: true})
         
-        logger.info(JSON.stringify('NFT Data saved'))
+        // logger.info(JSON.stringify('NFT Data saved'))
+        const query_rarities_accessories = new Moralis.Query ('ACCESSORY_RARITY_MASTER')
+        let accessoriesData = await query_rarities_accessories.find();
+
+        const rarityChosen = accessoriesData.find(e=>e.attributes.rarity === rarity)
+
+        for (let i = 0; i < amountEmit; i++) {
+            const newNFT = new AccesoryNFT();
+            newNFT.setACL(new Moralis.ACL(user))
+            newNFT.set('name', name);
+            newNFT.set('lore', lore);
+            newNFT.set('type', type);
+            newNFT.set('rarity', rarity);
+            newNFT.set('rarityNumber', rarityChosen.attributes.rarityNumber);
+            newNFT.set('power', 0);
+            newNFT.set('owner', user);
+            newNFT.set('durationLeft', null);
+            logger.info(JSON.stringify(price))
+            newNFT.set('price', Number(price));
+            newNFT.set('onSale', true);
+            newNFT.set('publishedTime', getDate());
+            newNFT.set('image', 'https://ipfs.moralis.io:2053/ipfs/Qmdm9RLrYcJKirY7kjRLH4yxnwzWUfw3dKZUTBvrNrP64H')
+            // newNFT.set('image', file)
+            await newNFT.save(null,{useMasterKey: true})
+            logger.info(JSON.stringify(`NFT number ${i} from ${owner.id} created`))
+        }
+
+        logger.info(JSON.stringify("All NFT's created"))
+
         break;
 
         default:
