@@ -115,7 +115,10 @@ Moralis.Cloud.afterSave("Movements", async (req) => {
         //CHECKING IF IS NEED TO CLOSE THE ROOM
         if(roomPlaying.attributes.lifeOne <= 0 && roomPlaying.attributes.lifeTwo <= 0){
             //CASO DE EMPATE
+            roomPlaying.set('nextMovementTime', -1)
+            roomPlaying.set('arePlaying', false)
             logger.info(JSON.stringify('EMPATARON'))
+            await roomPlaying.save(null,{useMasterKey: true})
             return;
         }
 

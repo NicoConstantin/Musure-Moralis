@@ -194,7 +194,7 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             newNFT.set('image', 'https://ipfs.moralis.io:2053/ipfs/Qmdm9RLrYcJKirY7kjRLH4yxnwzWUfw3dKZUTBvrNrP64H')
             // newNFT.set('image', file)
             await newNFT.save(null,{useMasterKey: true})
-            logger.info(JSON.stringify(`NFT number ${i} from ${owner.id} created`))
+            logger.info(JSON.stringify(`NFT number ${i} from ${user.id} created`))
         }
 
         logger.info(JSON.stringify("All NFT's created"))

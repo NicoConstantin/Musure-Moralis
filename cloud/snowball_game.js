@@ -4,6 +4,9 @@ const movements = Moralis.Object.extend('Movements');
 Moralis.Cloud.define('get_room', async (req) => {
 
     const {avatar_id, mission_number, reward} = req.params;
+    logger.info(JSON.stringify(mission_number))
+    logger.info(JSON.stringify(reward))
+    logger.info(JSON.stringify(avatar_id))
     const query_avatar_one = new Moralis.Query('Avatar')
     const query_avatar_two = new Moralis.Query('Avatar')
     const query_existent_room = new Moralis.Query('Room')

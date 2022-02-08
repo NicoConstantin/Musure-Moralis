@@ -1,5 +1,5 @@
-const cooldown_set_time = 15;
-const cooldown_set_type = 'second';
+const cooldown_set_time = 1;
+const cooldown_set_type = 'hour';
 
 const cooldown_game_time = 30;
 const cooldown_game_type = 'second';

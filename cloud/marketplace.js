@@ -110,34 +110,10 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
 
     const avatarsData = [
         {
-            name: 'Common',
-            number: 1,
-            priceMin: 40,
-            priceMax: 45,
-        },
-        {
-            name: 'Rare',
-            number: 2,
-            priceMin: 60,
-            priceMax: 70,
-        },
-        {
-            name: 'Epic',
-            number: 3,
-            priceMin: 100,
-            priceMax: 120,
-        },
-        {
-            name: 'Legendary',
-            number: 4,
-            priceMin: 150,
-            priceMax: 180,
-        },
-        {
             name: 'Mythic',
             number: 5,
-            priceMin: 230,
-            priceMax: 250,
+            priceMin: 50,
+            priceMax: 50,
         },
     ];
 
@@ -145,42 +121,42 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
         {
             name: 'Common',
             number: 1,
-            priceMin: 130,
-            priceMax: 140,
-            powerMin: 78,
-            powerMax: 260,
+            priceMin: 56.25,
+            priceMax: 116.25,
+            powerMin: 200,
+            powerMax: 250,
         },
         {
             name: 'Rare',
             number: 2,
-            priceMin: 160,
-            priceMax: 170,
-            powerMin: 261,
-            powerMax: 520,
+            priceMin: 99.38,
+            priceMax: 159.38,
+            powerMin: 300,
+            powerMax: 350,
         },
         {
             name: 'Epic',
             number: 3,
-            priceMin: 210,
-            priceMax: 230,
-            powerMin: 521,
-            powerMax: 780,
+            priceMin: 142.5,
+            priceMax: 202.5,
+            powerMin: 400,
+            powerMax: 450,
         },
         {
             name: 'Legendary',
             number: 4,
-            priceMin: 300,
-            priceMax: 350,
-            powerMin: 781,
-            powerMax: 1040,
+            priceMin: 185.63,
+            priceMax: 245.63,
+            powerMin: 500,
+            powerMax: 550,
         },
         {
             name: 'Mythic',
             number: 5,
-            priceMin: 500,
-            priceMax: 550,
-            powerMin: 1041,
-            powerMax: 1326,
+            priceMin: 228.75,
+            priceMax: 288.75,
+            powerMin: 600,
+            powerMax: 650,
         },
     ];
     const accessoriesType = ['Graffiti', 'Dance', 'Bazooka', 'Wing', 'Aura', 'Sneaker', 'Head', 'Skin', 'Vehicle', 'Pet']
@@ -191,9 +167,9 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
     
         for (let i = 0; i < 50; i++) {
             logger.info(`creatingAvatar${i}`)
-            if(i % 10 === 0 && i !== 0) {
-                pointerAv = pointerAv + 1
-            }
+            // if(i % 10 === 0 && i !== 0) {
+            //     pointerAv = pointerAv + 1
+            // }
     
             const newAvatar = new Avatar();
             newAvatar.setACL(new Moralis.ACL(user))
@@ -203,7 +179,8 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
             newAvatar.set('playsLeft', -1)
             newAvatar.set('timeContract', -1)
             newAvatar.set('owner', user)
-            newAvatar.set('price', getRandomPower(avatarsData[pointerAv].priceMax, avatarsData[pointerAv].priceMin))
+            // newAvatar.set('price', getRandomPower(avatarsData[pointerAv].priceMax, avatarsData[pointerAv].priceMin))
+            newAvatar.set('price', 50)
             newAvatar.set('onSale', true)
             newAvatar.set('publishedTime', getDate())
             await newAvatar.save(null, {useMasterKey: true})
