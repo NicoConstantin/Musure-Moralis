@@ -206,7 +206,7 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
             newAccessory.set('rarityNumber', accessoriesData[pointerRarity].number)
             newAccessory.set('power', getRandomPower(accessoriesData[pointerRarity].powerMax, accessoriesData[pointerRarity].powerMin))
             newAccessory.set('owner', user)
-            newAccessory.set('durationLeft', 130)
+            newAccessory.set('durationLeft', 150)
             newAccessory.set('price', getRandomPower(accessoriesData[pointerRarity].priceMax, accessoriesData[pointerRarity].priceMin))
             newAccessory.set('onSale', true)
             newAccessory.set('publishedTime', getDate())

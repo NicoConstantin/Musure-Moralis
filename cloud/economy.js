@@ -13,6 +13,4 @@ Moralis.Cloud.define('get_economy', async () => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });

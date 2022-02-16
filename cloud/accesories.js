@@ -22,8 +22,6 @@ Moralis.Cloud.define('get_master_accessories', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });
 
 //VALIDATED
@@ -218,8 +216,6 @@ Moralis.Cloud.define('get_accessories', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });
 
 //VALIDATED

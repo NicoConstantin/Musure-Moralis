@@ -15,19 +15,18 @@ Moralis.Cloud.define("get_user", async (req) =>{
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 })
 
 //VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
-    const {name, bio, image, twitch, youtube, instagram} = req.params;
+    const {name, bio, image, twitter, instagram, userId} = req.params;
+    const user = req.user;
     
-    const query_user = new Moralis.Query(Moralis.User)
+    const query_user = new Moralis.Query('User')
 
     try {
-        const actualUser = await query_user.get(req.user.id, { useMasterKey:true })
+        const actualUser = await query_user.get(userId, { useMasterKey:true })
 
         //VALIDATING NOT REQUIRED FIELDS
         if(name.length < min_length_names || name.length > max_length_names){
@@ -38,16 +37,31 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
         //MISSING VALIDATION OF IMAGE, NEED TO LOGG typeof(image)
 
-        //VALIDATING IF SOCIAL NETWORKS WERE SENDED
-        if(twitch){
-            actualUser.set('creatorTwitch', twitch);
+
+        //SOCIAL NETWORKS
+        if( twitter || instagram){
+            actualUser.set('isValidated', false)
         }
-        if(youtube){
-            actualUser.set('creatorYoutube', youtube);
+        if(twitter){
+            const query_key_twitter = new Moralis.Query('EnviromentVariable')
+            query_key_twitter.equalTo('reference', 'bearer_twitter')
+            const bearer = await query_key_twitter.first({useMasterKey: true})
+            
+            const twitterData = await Moralis.Cloud.httpRequest({
+                url: `https://api.twitter.com/2/users/by/username/${twitter}?user.fields=public_metrics`,
+                headers: {
+                    'Authorization': `Bearer ${bearer.attributes.key}`,
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            })
+            
+            actualUser.set('twitterFollowers', twitterData.data.data.public_metrics.followers_count) 
+            actualUser.set('creatorTwitter', twitter);
         }
         if(instagram){
             actualUser.set('creatorInstagram', instagram);
         }
+
         //SETTING FIELDS
         actualUser.set('creatorName', name);
         actualUser.set('creatorBio', bio);
@@ -64,8 +78,6 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         return error.message
     }
     
-},{
-    requireUser: true
 });
 
 //VALIDATED
@@ -94,6 +106,4 @@ Moralis.Cloud.define('claim', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });

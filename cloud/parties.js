@@ -49,8 +49,6 @@ Moralis.Cloud.define('patch_party_data', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });
 
 //VALIDATED
@@ -74,8 +72,6 @@ Moralis.Cloud.define('get_all_parties', async () => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });
 
 //VALIDATED

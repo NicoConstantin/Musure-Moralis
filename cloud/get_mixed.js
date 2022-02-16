@@ -33,8 +33,6 @@ Moralis.Cloud.define('get_crew', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });
 
 //VALIDATED
@@ -73,6 +71,4 @@ Moralis.Cloud.define('get_crew_onsale', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });

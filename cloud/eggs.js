@@ -21,6 +21,4 @@ Moralis.Cloud.define('get_master_egg', async () => {
     } catch (error) {
         return error.message
     }
-},{
-    requireUser: true
 });

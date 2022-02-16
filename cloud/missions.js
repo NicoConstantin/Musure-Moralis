@@ -19,8 +19,6 @@ Moralis.Cloud.define('get_missions', async () => {
         return error.message
     }
 
-},{
-    requireUser: true
 });
 
 //VALIDATED
