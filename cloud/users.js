@@ -20,7 +20,7 @@ Moralis.Cloud.define("get_user", async (req) =>{
 //VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
-    const {name, bio, image, twitter, instagram, userId} = req.params;
+    const {name, bio, image, imageData, twitter, instagram, email, userId} = req.params;
     const user = req.user;
     
     const query_user = new Moralis.Query('User')
@@ -38,7 +38,7 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         //MISSING VALIDATION OF IMAGE, NEED TO LOGG typeof(image)
 
 
-        //SOCIAL NETWORKS
+        //IF USER CHANGE HIS NETWORKS LOSE HIS VALIDATION
         if( twitter || instagram){
             actualUser.set('isValidated', false)
         }
@@ -60,12 +60,26 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
         if(instagram){
             actualUser.set('creatorInstagram', instagram);
+            const instagramData = await Moralis.Cloud.httpRequest({
+                url: `https://www.instagram.com/${instagram}/?__a=1`,
+                followRedirects: true,
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            })
+            logger.info(JSON.stringify(instagram))
+            logger.info(JSON.stringify(instagramData))
+            return instagramData
+            logger.info(JSON.stringify(instagramData.data))
+            actualUser.set('instagramFollowers', instagramData.data.graphql.user.edge_followed_by.count);
         }
 
         //SETTING FIELDS
         actualUser.set('creatorName', name);
         actualUser.set('creatorBio', bio);
-        actualUser.set('creatorImg', image);
+        actualUser.set('creatorImage', image);
+        actualUser.set('imageData', imageData);
+        actualUser.set('creatorEmail', email)
 
         await actualUser.save(null, { useMasterKey:true });
 
