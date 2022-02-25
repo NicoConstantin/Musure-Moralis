@@ -31,7 +31,7 @@ Moralis.Cloud.define("get_creators", async (req) =>{
                 creatorName: e.attributes.creatorName,
                 creatorTwitter: e.attributes.creatorTwitter,
                 twitterFollowers: e.attributes.twitterFollowers,
-                creatorInstagram: e.attributes.creatorInstagram? `https://www.instagram.com/${e.attributes.creatorInstagram}/`: null,
+                creatorInstagram: e.attributes.creatorInstagram? `https://www.instagram.com/${e.attributes.creatorInstagram}/?__a=1`: null,
                 instagramFollowers: e.attributes.instagramFollowers,
                 creatorEmail: e.attributes.creatorEmail,
                 profileImage: e.attributes.creatorImage
