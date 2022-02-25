@@ -106,7 +106,7 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
     const Avatar = Moralis.Object.extend("Avatar");
     const Accessory = Moralis.Object.extend("Accessory");
 
-    const user = req.user;
+    const userId = req.params.userId;
 
     const avatarsData = [
         {
@@ -162,7 +162,8 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
     const accessoriesType = ['Graffiti', 'Dance', 'Bazooka', 'Wing', 'Aura', 'Sneaker', 'Head', 'Skin', 'Vehicle', 'Pet']
 
     try {
-        
+        const user_query = new Moralis.Query('User');
+        const user_pointer = await user_query.get(userId, {useMasterKey: true})
         let pointerAv = 0
     
         for (let i = 0; i < 50; i++) {
@@ -172,13 +173,13 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
             // }
     
             const newAvatar = new Avatar();
-            newAvatar.setACL(new Moralis.ACL(user))
+            newAvatar.setACL(new Moralis.ACL(userId))
             newAvatar.set('rarity', avatarsData[pointerAv].name)
             newAvatar.set('rarityNumber', avatarsData[pointerAv].number)
             newAvatar.set('power', 0)
             newAvatar.set('playsLeft', -1)
             newAvatar.set('timeContract', -1)
-            newAvatar.set('owner', user)
+            newAvatar.set('owner', user_pointer)
             // newAvatar.set('price', getRandomPower(avatarsData[pointerAv].priceMax, avatarsData[pointerAv].priceMin))
             newAvatar.set('price', 50)
             newAvatar.set('onSale', true)
@@ -200,12 +201,12 @@ Moralis.Cloud.define('fill_marketplace', async (req) => {
             }
     
             const newAccessory = new Accessory();
-            newAccessory.setACL(new Moralis.ACL(user))
+            newAccessory.setACL(new Moralis.ACL(userId))
             newAccessory.set('type', accessoriesType[pointerAcc])
             newAccessory.set('rarity', accessoriesData[pointerRarity].name)
             newAccessory.set('rarityNumber', accessoriesData[pointerRarity].number)
             newAccessory.set('power', getRandomPower(accessoriesData[pointerRarity].powerMax, accessoriesData[pointerRarity].powerMin))
-            newAccessory.set('owner', user)
+            newAccessory.set('owner', user_pointer)
             newAccessory.set('durationLeft', 150)
             newAccessory.set('price', getRandomPower(accessoriesData[pointerRarity].priceMax, accessoriesData[pointerRarity].priceMin))
             newAccessory.set('onSale', true)

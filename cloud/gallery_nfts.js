@@ -1,12 +1,13 @@
 Moralis.Cloud.define('get_gallery', async (req) => {
 
-    const { filter, sort, user_id } = req.params
+    const { filter, sort, user_name } = req.params
 
     const query_user_accessories = new Moralis.Query('Accessory');
     const query_user = new Moralis.Query('User');
 
     try {
-        const userAsked = await query_user.get(user_id, {useMasterKey: true})
+        query_user.equalTo('creatorName', user_name)
+        const userAsked = await query_user.first({useMasterKey: true})
         query_user_accessories.equalTo('owner', userAsked)
         query_user_accessories.equalTo("durationLeft", null);
         query_user_accessories.equalTo("power", 0);
@@ -69,12 +70,4 @@ Moralis.Cloud.define('get_gallery', async (req) => {
     } catch (error) {
         return error.message
     }
-},{
-    fields:{
-        user_id:{
-            ...validation_id,
-            error: "user_id is not passed or has an error"
-        },
-    },
-    requireUser: true
 });
