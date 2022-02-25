@@ -17,16 +17,44 @@ Moralis.Cloud.define("get_user", async (req) =>{
     }
 })
 
+Moralis.Cloud.define("get_creators", async (req) =>{
+
+    const query_user = new Moralis.Query(Moralis.User)
+
+    try {
+
+        let users = await query_user.find({ useMasterKey:true })
+        let users_clean_data = users.map(e=>{
+            const obj = {
+                id: e.id,
+                isValidated: e.attributes.isValidated,
+                creatorName: e.attributes.creatorName,
+                creatorTwitter: e.attributes.creatorTwitter,
+                twitterFollowers: e.attributes.twitterFollowers,
+                creatorInstagram: e.attributes.creatorInstagram,
+                instagramFollowers: e.attributes.instagramFollowers,
+                creatorEmail: e.attributes.creatorEmail,
+                profileImage: e.attributes.creatorImage
+            }
+            return obj
+        })
+        return users_clean_data
+
+    } catch (error) {
+        return error.message
+    }
+})
+
 //VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
-    const {name, bio, image, imageData, twitter, instagram, email, userId} = req.params;
+    const {name, bio, image, imageData, twitter, instagram, email} = req.params;
     const user = req.user;
     
     const query_user = new Moralis.Query('User')
 
     try {
-        const actualUser = await query_user.get(userId, { useMasterKey:true })
+        const actualUser = await query_user.get(user.id, { useMasterKey:true })
 
         //VALIDATING NOT REQUIRED FIELDS
         if(name.length < min_length_names || name.length > max_length_names){
@@ -60,18 +88,20 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
         }
         if(instagram){
             actualUser.set('creatorInstagram', instagram);
-            const instagramData = await Moralis.Cloud.httpRequest({
-                url: `https://www.instagram.com/${instagram}/?__a=1`,
-                followRedirects: true,
-                headers: {
-                    'Content-Type': 'application/json;charset=utf-8'
-                }
-            })
-            logger.info(JSON.stringify(instagram))
-            logger.info(JSON.stringify(instagramData))
-            return instagramData
-            logger.info(JSON.stringify(instagramData.data))
-            actualUser.set('instagramFollowers', instagramData.data.graphql.user.edge_followed_by.count);
+            // const instagramData = await Moralis.Cloud.httpRequest({
+            //     url: `https://www.instagram.com/${instagram}/?__a=1`,
+            //     method: 'GET',
+            //     followRedirects: true,
+            //     headers: {
+            //         'Access-Control-Allow-Origin': '*',
+            //         'Access-Control-Allow-Origin': 'http://127.0.0.1:3000',
+            //         'Access-Control-Request-Headers': 'Content-Type, Authorization',
+            //         'Access-Control-Request-Method': 'GET'
+            //     }
+            // })
+            // return instagramData
+            // logger.info(JSON.stringify(instagramData.data))
+            // actualUser.set('instagramFollowers', instagramData.data.graphql.user.edge_followed_by.count);
         }
 
         //SETTING FIELDS
