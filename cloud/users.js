@@ -31,7 +31,7 @@ Moralis.Cloud.define("get_creators", async (req) =>{
                 creatorName: e.attributes.creatorName,
                 creatorTwitter: e.attributes.creatorTwitter,
                 twitterFollowers: e.attributes.twitterFollowers,
-                creatorInstagram: e.attributes.creatorInstagram,
+                creatorInstagram: e.attributes.creatorInstagram? `https://www.instagram.com/${e.attributes.creatorInstagram}/`: null,
                 instagramFollowers: e.attributes.instagramFollowers,
                 creatorEmail: e.attributes.creatorEmail,
                 profileImage: e.attributes.creatorImage
@@ -48,29 +48,28 @@ Moralis.Cloud.define("get_creators", async (req) =>{
 //VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
-    const {name, bio, image, imageData, twitter, instagram, email} = req.params;
+    let {name, bio, image, imageData, twitter, instagram, email} = req.params;
+    
     const user = req.user;
     
-    const query_user = new Moralis.Query('User')
-
     try {
+        const query_user = new Moralis.Query('User')
         const actualUser = await query_user.get(user.id, { useMasterKey:true })
-
-        //VALIDATING NOT REQUIRED FIELDS
-        if(name.length < min_length_names || name.length > max_length_names){
-            return `name must be a string and must be between ${min_length_names} and ${max_length_names} long`
-        }
-        if(bio.length < min_length_bio || bio.length > max_length_bio){
-            return `bio must be a string and must be between ${min_length_bio} and ${max_length_bio} long`
-        }
-        //MISSING VALIDATION OF IMAGE, NEED TO LOGG typeof(image)
-
-
+        
         //IF USER CHANGE HIS NETWORKS LOSE HIS VALIDATION
-        if( twitter || instagram){
-            actualUser.set('isValidated', false)
-        }
+        
         if(twitter){
+            twitter = twitter.toLowerCase();
+            //VALIDATING IF SAME TWITTER EXIST
+            const query_same_twitter = new Moralis.Query('User')
+            query_same_twitter.equalTo('creatorTwitter', twitter)
+            query_same_twitter.notEqualTo('objectId', user.id)
+            const sameTwitterExist = await query_same_twitter.find({useMasterKey: true})
+            if(sameTwitterExist.length>0){
+                return 'That twitter is already on use'
+            }
+            
+            //HITTING TWITTER API
             const query_key_twitter = new Moralis.Query('EnviromentVariable')
             query_key_twitter.equalTo('reference', 'bearer_twitter')
             const bearer = await query_key_twitter.first({useMasterKey: true})
@@ -83,36 +82,53 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
                 }
             })
             
+            //SETTING TWITTER FIELDS
             actualUser.set('twitterFollowers', twitterData.data.data.public_metrics.followers_count) 
             actualUser.set('creatorTwitter', twitter);
         }
+        
         if(instagram){
+            instagram = instagram.toLowerCase();
+            //VALIDATING IF SAME INSTAGRAM EXIST
+            const query_same_instagram = new Moralis.Query('User')
+            query_same_instagram.equalTo('creatorInstagram', instagram)
+            query_same_instagram.notEqualTo('objectId', user.id)
+            const sameInstagramExist = await query_same_instagram.find({useMasterKey: true})
+            if(sameInstagramExist.length>0){
+                return 'That instagram is already on use'
+            }
+            
+            //SETTING INSTAGRAM FIELDS
             actualUser.set('creatorInstagram', instagram);
             // const instagramData = await Moralis.Cloud.httpRequest({
-            //     url: `https://www.instagram.com/${instagram}/?__a=1`,
-            //     method: 'GET',
-            //     followRedirects: true,
-            //     headers: {
-            //         'Access-Control-Allow-Origin': '*',
-            //         'Access-Control-Allow-Origin': 'http://127.0.0.1:3000',
-            //         'Access-Control-Request-Headers': 'Content-Type, Authorization',
-            //         'Access-Control-Request-Method': 'GET'
-            //     }
-            // })
-            // return instagramData
-            // logger.info(JSON.stringify(instagramData.data))
-            // actualUser.set('instagramFollowers', instagramData.data.graphql.user.edge_followed_by.count);
+                //     url: `https://www.instagram.com/${instagram}/?__a=1`,
+                //     method: 'GET',
+                //     followRedirects: true,
+                //     headers: {
+                    //         'Access-Control-Allow-Origin': '*',
+                    //         'Access-Control-Allow-Origin': 'http://127.0.0.1:3000',
+                    //         'Access-Control-Request-Headers': 'Content-Type, Authorization',
+                    //         'Access-Control-Request-Method': 'GET'
+                    //     }
+                    // })
+                    // return instagramData
+                    // logger.info(JSON.stringify(instagramData.data))
+                    // actualUser.set('instagramFollowers', instagramData.data.graphql.user.edge_followed_by.count);
+            }
+            
+        if((twitter && twitter !== actualUser.attributes.creatorTwitter) || (instagram && instagram !== actualUser.attributes.creatorInstagram)){
+            actualUser.set('isValidated', false)
         }
-
-        //SETTING FIELDS
-        actualUser.set('creatorName', name);
-        actualUser.set('creatorBio', bio);
-        actualUser.set('creatorImage', image);
-        actualUser.set('imageData', imageData);
-        actualUser.set('creatorEmail', email)
-
+                
+        //SETTING OTHER FIELDS
+        if(name) actualUser.set('creatorName', name);
+        if(bio) actualUser.set('creatorBio', bio);
+        if(image) actualUser.set('creatorImage', image);
+        if(imageData) actualUser.set('imageData', imageData);
+        if(email) actualUser.set('creatorEmail', email)
+        
         await actualUser.save(null, { useMasterKey:true });
-
+                
         return {
             updated: true,
             message: "Creator info updated"
