@@ -70,11 +70,6 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
                 logger.info(JSON.stringify('That avatar already has a party'))
                 break;
             }
-            if(data.time_contract < 7){
-                logger.info(JSON.stringify('time_contract must be a number greater or equal to 7'))
-                break;
-            }
-            
             //SETTING PARTY FIELDS
             let party_to_join = await query_party.get(data.party_id, {useMasterKey:true});
             party_to_join.addUnique('avatarsIn',avatar_to_join)
