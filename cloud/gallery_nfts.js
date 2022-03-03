@@ -60,9 +60,30 @@ Moralis.Cloud.define('get_gallery', async (req) => {
         query_user_NFT.withCount()
 
         let resultAccessories = await query_user_NFT.find({useMasterKey:true})
+        
+        const query_NFT_asset = new Moralis.Query ('NFT_ASSETS_MAIN')
+        let nft_asset_uids = await query_NFT_asset.find({useMasterKey: true});
+
+        let uids = {}
+
+        nft_asset_uids.forEach(item => {
+            uids = {
+                ...uids,
+                [item.attributes.type] : item.attributes.idSketchfab
+            }
+        })
+
+        let NFTs = resultAccessories.results.map(nft=>{
+            return {
+                ...nft,
+                attributes: nft.attributes,
+                uidSketchfab: uids[nft.attributes.type]
+            }
+        })
 
         return {
-            ...resultAccessories,
+            results: NFTs,
+            count : resultAccessories.count,
             message: 'Items that were ordered'
         }
 

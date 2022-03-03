@@ -23,8 +23,8 @@ Moralis.Cloud.define('payment', async (req) => {
         
         //VALIDATIONS
         if(data){
-            const { name, lore, rarity, amount_emit, price, type, texture_left, texture_right, avatar_id, party_id, time_contract, accessory_id } = data;
-            logger.info(JSON.stringify(data))
+            const { name, lore, rarity, amount_emit, price, type, texture_left, texture_right, imageNFT, avatar_id, party_id, time_contract, accessory_id } = data;
+            
             if(avatar_id && typeof(avatar_id) !== 'string' && !avatar_id?.length === 24){
                 return "data.avatar_id does not satisfy the required conditions"
             }
@@ -61,6 +61,9 @@ Moralis.Cloud.define('payment', async (req) => {
             }
             if(texture_right && !regex_ipfs_moralis.test(texture_right)){
                 return "data.texture_right does not satisfy the required conditions"
+            }
+            if(imageNFT && !regex_ipfs_moralis.test(imageNFT)){
+                return "data.imageNFT does not satisfy the required conditions"
             }
         }
 

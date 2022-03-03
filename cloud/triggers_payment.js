@@ -137,7 +137,6 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
         const accessory_NFT = Moralis.Object.extend('AccessoryNFT');
         const query_rarities_accessories = new Moralis.Query ('ACCESSORY_RARITY_MASTER')
         let accessories_data = await query_rarities_accessories.find();
-        
         const rarity_chosen = accessories_data.find(e=>e.attributes.rarity === data.rarity)
 
         for (let i = 0; i < data.amount_emit; i++) {
