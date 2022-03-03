@@ -150,10 +150,12 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             new_NFT.set('power', 0);
             new_NFT.set('owner', user);
             new_NFT.set('price', Number(data.price));
+            new_NFT.set('equippedOn', null);
             new_NFT.set('onSale', true);
             new_NFT.set('publishedTime', getDate());
             new_NFT.set('textureLeft', data.texture_left)
             new_NFT.set('textureRight', data.texture_right)
+            new_NFT.set('imageNFT', data.imageNFT)
             await new_NFT.save(null,{useMasterKey: true})
             logger.info(JSON.stringify(`NFT number ${i} from ${user.id} created`))
         }

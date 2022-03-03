@@ -82,3 +82,46 @@ function getRandomType (array) {
     let position = Math.floor(Math.random() * (9 + 0 + 1) )
     return array[position]
 }
+
+async function getItems (kind, filter, sort, user) {
+    const query_user_items = new Moralis.Query(kind);
+    query_user_items.equalTo('owner', user)
+    query_user_items.equalTo("onSale", false);
+    query_user_items.equalTo("equippedOn", null);
+
+    //FILTERING
+    if (filter){
+        if (filter.rarity) {
+            query_user_items.equalTo('rarityNumber', filter.rarity)
+        }
+        if (filter.powerMin) {
+            query_user_items.greaterThanOrEqualTo('power', filter.powerMin)
+        }
+        if (filter.powerMax) {
+            query_user_items.lessThanOrEqualTo('power', filter.powerMax)
+        }
+        if (filter.type){
+            query_user_items.equalTo('type', filter.type)
+        }
+    }
+    
+    //SORTING
+    if (sort){
+        if(sort.type){
+            query_user_items[sort.type]('type')
+        }
+        if(sort.rarity){
+            query_user_items[sort.rarity]('rarityNumber')
+        }
+        if(sort.power){
+            query_user_items[sort.power]('power')
+        }
+        if(sort.durationLeft){
+            query_user_items[sort.durationLeft]('durationLeft')
+        }
+    }
+    query_user_items.limit(1000)
+
+    let result = await query_user_items.find({useMasterKey:true})
+    return result
+}
