@@ -109,25 +109,25 @@ Moralis.Cloud.define('get_avatar', async (req) => {
     const avatar_id = req.params.avatar_id;
 
     try {
-        const typesAccessories = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti'];
+        const typesItems = ['head', 'pet', 'sneaker', 'aura', 'wing', 'vehicle', 'skin', 'bazooka', 'dance', 'graffiti'];
 
-        for (let i = 0; i < typesAccessories.length; i++) {
-            query_avatar.include(typesAccessories[i])
+        for (let i = 0; i < typesItems.length; i++) {
+            query_avatar.include(typesItems[i])
         }
 
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true});
 
-        const accessoriesAvatar = [];
+        const itemsAvatar = [];
 
         for (const key in avatar.attributes) {
-            if (typesAccessories.includes(key)) {
-                accessoriesAvatar.push(avatar.attributes[key])
+            if (typesItems.includes(key)) {
+                itemsAvatar.push(avatar.attributes[key])
             }
         }
 
         return {
             avatar: avatar,
-            avatarAccessories: accessoriesAvatar,
+            avatarItems: itemsAvatar,
             message: "Avatar info"
         }
 
@@ -198,6 +198,8 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
 
     const query_avatar = new Moralis.Query('Avatar');
     const query_accessories = new Moralis.Query('Accessory');
+    const query_nfts = new Moralis.Query('AccessoryNFT');
+
 
     const { avatar_id, price } = req.params;
 
@@ -212,17 +214,28 @@ Moralis.Cloud.define('put_onsale_avatar', async (req) => {
             return 'your avatar is tired, you should wait until it rests to put it up for sale'
         }
 
-        //FINDING IF AVATAR HAS ACCESSORIES EQUIPPED
+        //FINDING IF AVATAR HAS ITEMS EQUIPPED
         query_accessories.equalTo('equippedOn', avatarToSell)
-        let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
+        query_nfts.equalTo('equippedOn', avatarToSell)
+        let accessoriesEquipped = await query_accessories.find({useMasterKey:true})
+        let nftsEquipped = await query_nfts.find({useMasterKey:true})
 
-        //UNEQUIPPING ACCESSORIES
-        if(accessoriesEquiped.length > 0){
-            accessoriesEquiped.forEach(async (acc)=>{
+        //UNEQUIPPING ITEMS
+        if(accessoriesEquipped.length > 0){
+            accessoriesEquipped.forEach(async (acc)=>{
                 acc.set('equippedOn', null)
                 await acc.save(null, {useMasterKey:true})
                 avatarToSell.set(acc.attributes.type.toLowerCase(), null)
                 avatarToSell.set('power', avatarToSell.attributes.power - acc.attributes.power)
+                await avatarToSell.save(null, {useMasterKey:true})
+            })
+        }
+        if(nftsEquipped.length > 0){
+            nftsEquipped.forEach(async (nft)=>{
+                nft.set('equippedOn', null)
+                await nft.save(null, {useMasterKey:true})
+                avatarToSell.set(nft.attributes.type.toLowerCase(), null)
+                avatarToSell.set('power', avatarToSell.attributes.power - nft.attributes.power)
                 await avatarToSell.save(null, {useMasterKey:true})
             })
         }
@@ -296,30 +309,40 @@ Moralis.Cloud.define('kick_onsale_avatar', async (req) => {
 // Moralis.Cloud.define('delete_avatar', async (req) => {
 //     const query_avatar = new Moralis.Query('Avatar');
 //     const query_accessories = new Moralis.Query('Accessory');
+//     const query_nfts = new Moralis.Query('AccessoryNFT');
 
 //     try {
 //         let avatarToDelete = await query_avatar.get(req.params.avatar_id, {useMasterKey:true})
+
+//         if(avatarToDelete.attributes.belongParty){
+//             let party = avatarToDelete.attributes.belongParty
+
+//             party.remove('avatarsIn', avatarToDelete)
+//             await party.save(null, {useMasterKey:true})
+
+//         }
+
 //         query_accessories.equalTo('equippedOn', avatarToDelete)
-//         let accessoriesEquiped = await query_accessories.find({useMasterKey:true})
+//         let accessoriesEquipped = await query_accessories.find({useMasterKey:true})
 
-//             if(avatarToDelete.attributes.belongParty){
-//                 let party = avatarToDelete.attributes.belongParty
-    
-//                 party.remove('avatarsIn', avatarToDelete)
-//                 await party.save(null, {useMasterKey:true})
+//         query_nfts.equalTo('equippedOn', avatarToDelete)
+//         let nftsEquipped = await query_nfts.find({useMasterKey:true})
 
-//             }
+//         if(accessoriesEquipped.length>0){
+//             accessoriesEquipped.forEach(async acc=>{
+//                 acc.set('equippedOn', null)
+//                 await acc.save(null, {useMasterKey:true})
+//             })
+//         }
+//         if(nftsEquipped.length>0){
+//             nftsEquipped.forEach(async nft=>{
+//                 nft.set('equippedOn', null)
+//                 await nft.save(null, {useMasterKey:true})
+//             })
+//         }
 
-//             if(accessoriesEquiped.length>0){
-//                 accessoriesEquiped.forEach(async acc=>{
-//                     acc.set('equippedOn', null)
-//                     await acc.save(null, {useMasterKey:true})
-//                 })
-//             }
-
-//             await avatarToDelete.destroy({useMasterKey:true})
+//         await avatarToDelete.destroy({useMasterKey:true})
             
-
 //         return {
 //             deleted: true,
 //             message: 'Avatar Deleted'

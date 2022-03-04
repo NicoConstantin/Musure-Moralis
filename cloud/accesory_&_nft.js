@@ -27,25 +27,17 @@ Moralis.Cloud.define('get_master_accessories', async(req) => {
 //VALIDATED
 Moralis.Cloud.define('equip_item', async(req) => {
     
-    const query_accessory = new Moralis.Query('Accessory');
-    const query_avatar = new Moralis.Query('Avatar');
-    const query_nft = new Moralis.Query('AccessoryNFT');
-
     const { avatar_id, item_id, item_kind } = req.params;
+    
+    const query_avatar = new Moralis.Query('Avatar');
+    const query_item = new Moralis.Query(item_kind);
 
     try {
         
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true});
-        let item;
+        let item = await query_item.get(item_id, {useMasterKey:true});
         
-        if(item_kind === 'accessory'){
-            item = await query_accessory.get(item_id, {useMasterKey:true});
-        }
-        if(item_kind === 'nft'){
-            item = await query_nft.get(item_id, {useMasterKey:true});
-        }
         let type_item = item.attributes.type.toLowerCase()
-
 
         //VALIDATING CONTEXT
         if(avatar.attributes.owner.id !== item.attributes.owner.id) {
@@ -57,24 +49,23 @@ Moralis.Cloud.define('equip_item', async(req) => {
                 message: "Avatar already have that kind of item equipped"
             }
         }
-        if(accessory.attributes.equippedOn){
+        if(item.attributes.equippedOn){
             return {
                 equipped:false,
-                message: 'That accessory is equipped in another avatar'
+                message: 'That item is equipped in another avatar'
             }
         }
         if(avatar.attributes.onSale){
-            return 'Your avatar is on sale, you cannot equip any accessory'
+            return 'Your avatar is on sale, you cannot equip any item'
         }
-        //REVISAR
         if(avatar.attributes.playsLeft === 0){
-            return 'Your cannot equip accessories if your avatar is tired'
+            return 'Your cannot equip items if your avatar is tired'
         }
         if(item.attributes.rarityNumber > avatar.attributes.rarityNumber){
-            return 'You cannot equip an accessory whose power is greater than the avatar'
+            return 'You cannot equip an item whose power is greater than the avatar'
         }
 
-        //EQUIPPING ACCESSORY
+        //EQUIPPING ITEM
         else{
             item.set('equippedOn', avatar)
             await item.save(null, {useMasterKey:true})
@@ -103,6 +94,14 @@ Moralis.Cloud.define('equip_item', async(req) => {
             ...validation_id,
             error: "item_id is not passed or has an error"
         },
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT' 
+            },
+            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+        },
     },
     requireUser: true
 });
@@ -110,23 +109,16 @@ Moralis.Cloud.define('equip_item', async(req) => {
 //VALIDATED
 Moralis.Cloud.define('unequip_item', async (req) => {
 
-    const query_accessory = new Moralis.Query('Accessory');
-    const query_avatar = new Moralis.Query('Avatar');
-    const query_nft = new Moralis.Query('AccessoryNFT');
-
     const { avatar_id, item_id, item_kind } = req.params;
+    
+    const query_avatar = new Moralis.Query('Avatar');
+    let query_item = new Moralis.Query(item_kind);
 
     try {
         
         let avatar = await query_avatar.get(avatar_id, {useMasterKey:true});
-        let item;
+        let item = await query_item.get(item_id, {useMasterKey:true});
         
-        if(item_kind === 'accessory'){
-            item = await query_accessory.get(item_id, {useMasterKey:true});
-        }
-        if(item_kind === 'nft'){
-            item = await query_nft.get(item_id, {useMasterKey:true});
-        }
         let type_item = item.attributes.type.toLowerCase()
 
         //VALIDATING CONTEXT
@@ -137,14 +129,14 @@ Moralis.Cloud.define('unequip_item', async (req) => {
             return "You cannot unequip something that is not equipped :)"
         }
         if(avatar.attributes.onSale){
-            return 'Your avatar is on sale, you cannot unequip any accessory'
+            return 'Your avatar is on sale, you cannot unequip any item'
         }
         //REVISAR
         if(avatar.attributes.playsLeft === 0){
-            return 'Your cannot unequip accessories if your avatar is tired'
+            return 'Your cannot unequip items if your avatar is tired'
         }
 
-        //UNEQUIPPING ACCESSORY
+        //UNEQUIPPING ITEM
         else{
             item.set('equippedOn', null)
             await item.save(null, {useMasterKey:true})
@@ -174,6 +166,14 @@ Moralis.Cloud.define('unequip_item', async (req) => {
             ...validation_id,
             error: "item_id is not passed or has an error"
         },
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT' 
+            },
+            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+        },
     },
     requireUser: true 
 });
@@ -187,13 +187,13 @@ Moralis.Cloud.define('get_items', async (req) => {
     try {
         let results = {};
         
-        if(item_kind === 'accessory' || item_kind === 'all'){
+        if(item_kind === 'Accessory' || item_kind === 'All'){
             results = {
                 ...results,
                 accessories: await getItems('Accessory', filter, sort, user)
             }
         }
-        if(item_kind === 'nft' || item_kind === 'all'){
+        if(item_kind === 'AccessoryNFT' || item_kind === 'All'){
             results = {
                 ...results,
                 nfts: await getItems('AccessoryNFT', filter, sort, user)
@@ -214,43 +214,44 @@ Moralis.Cloud.define('get_items', async (req) => {
             required: true,
             type: String,
             options: val=>{
-                return val === 'accessory' || val === 'nft' || val === 'all'
+                return val === 'Accessory' || val === 'AccessoryNFT' || val === 'All'
             },
-            error:"item_kind must be equal to 'accessory', 'all' or 'nft'"
+            error:"item_kind must be equal to 'Accessory', 'All' or 'AccessoryNFT'"
         },
     },
     requireUser: true 
 });
 
 //VALIDATED
-Moralis.Cloud.define('put_onsale_accessory', async (req) => {
-    const query_accessory = new Moralis.Query('Accessory');
+Moralis.Cloud.define('put_onsale_item', async (req) => {
 
-    const { price, accessory_id } = req.params;
+    const { price, item_id, item_kind } = req.params;
+    
+    const query_avatar = new Moralis.Query('Avatar');
+    const query_item = new Moralis.Query(item_kind);
     
     try {
-        let accessoryToSell = await query_accessory.get(accessory_id, {useMasterKey:true})
+        let item = await query_item.get(item_id, {useMasterKey:true});
 
         //VALIDATING CONTEXT
-        if(accessoryToSell.attributes.equippedOn){
-            const query_avatar = new Moralis.Query('Avatar');
-            let avatarToUnequip = await query_avatar.get(accessoryToSell.attributes.equippedOn, {useMasterKey:true})
+        if(item.attributes.equippedOn){
+            let avatar_to_unequip = await query_avatar.get(item.attributes.equippedOn, {useMasterKey:true})
 
-            //UNEQUIPPING ACCESSORY FROM AVATAR
-            avatarToUnequip.set(accessoryToSell.attributes.type.toLowerCase(), null)
-            avatarToUnequip.set('power', avatarToUnequip.attributes.power - accessoryToSell.attributes.power)
-            await avatarToUnequip.save(null, {useMasterKey:true})
+            //UNEQUIPPING ITEM FROM AVATAR
+            avatar_to_unequip.set(item.attributes.type.toLowerCase(), null)
+            avatar_to_unequip.set('power', avatar_to_unequip.attributes.power - item.attributes.power)
+            await avatar_to_unequip.save(null, {useMasterKey:true})
         }
 
         //SETTING ACCESORY FIELDS
-        accessoryToSell.set('price', price)
-        accessoryToSell.set('onSale', true)
-        accessoryToSell.set('publishedTime', getDate())
-        await accessoryToSell.save(null, {useMasterKey:true})
+        item.set('price', price)
+        item.set('onSale', true)
+        item.set('publishedTime', getDate())
+        await item.save(null, {useMasterKey:true})
 
         return {
             onSale: true,
-            message: 'Accessory was successfully put on sale'
+            message: 'Item was successfully put on sale'
         }
 
     } catch (error) {
@@ -259,33 +260,41 @@ Moralis.Cloud.define('put_onsale_accessory', async (req) => {
 },{
     fields:{
         price: validation_price,
-        accessory_id:{
+        item_id:{
             ...validation_id,
-            error: "accessory_id is not passed or has an error"
+            error: "item_id is not passed or has an error"
         },
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT'
+            },
+            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+        }
     },
     requireUser: true 
 });
 
 //VALIDATED
-Moralis.Cloud.define('kick_onsale_accessory', async (req) => {
+Moralis.Cloud.define('kick_onsale_item', async (req) => {
 
-    const query_accessory = new Moralis.Query('Accessory');
-
-    const accessory_id = req.params.accessory_id;
+    const { item_id, item_kind } = req.params;
     
-    try {
-        let accessoryToSell = await query_accessory.get(accessory_id, {useMasterKey:true})
+    let query_item = new Moralis.Query(item_kind);
 
-        //SETTING ACCESSORY FIELDS
-        accessoryToSell.set('price', null)
-        accessoryToSell.set('onSale', false)
-        accessoryToSell.set('publishedTime', -1)
-        await accessoryToSell.save(null, {useMasterKey:true})
+    try {
+        let item = await query_item.get(item_id, {useMasterKey:true});
+
+        //SETTING ITEM FIELDS
+        item.set('price', null)
+        item.set('onSale', false)
+        item.set('publishedTime', -1)
+        await item.save(null, {useMasterKey:true})
 
         return {
             removed: true,
-            message: 'Accessory was successfully removed from sale'
+            message: 'Item was successfully removed from sale'
         }
 
     } catch (error) {
@@ -293,10 +302,18 @@ Moralis.Cloud.define('kick_onsale_accessory', async (req) => {
     }
 },{
     fields:{
-        accessory_id:{
+        item_id:{
             ...validation_id,
-            error: "accessory_id is not passed or has an error"
+            error: "item_id is not passed or has an error"
         },
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT'
+            },
+            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+        }
     },
     requireUser: true
 });
