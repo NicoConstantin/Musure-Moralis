@@ -36,6 +36,7 @@ Moralis.Cloud.define('get_crew', async (req) => {
 });
 
 //VALIDATED
+//HAY QUE SEPARAR LOS NFTS Y LOS ACCESORIOS DE LAS ROW ON SALE
 Moralis.Cloud.define('get_crew_onsale', async (req) => {
     
     const query_accessories = new Moralis.Query('Accessory')

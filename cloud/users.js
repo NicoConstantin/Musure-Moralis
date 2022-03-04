@@ -45,7 +45,6 @@ Moralis.Cloud.define("get_creators", async (req) =>{
     }
 })
 
-//VALIDATED MISSING TO WORK WITH AUTOMATIZATION OF VALIDATE AND IMAGE
 Moralis.Cloud.define('patch_creator_data', async (req) => {
 
     let {name, bio, image, imageData, twitter, instagram, email} = req.params;
