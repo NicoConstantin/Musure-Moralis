@@ -317,3 +317,38 @@ Moralis.Cloud.define('kick_onsale_item', async (req) => {
     },
     requireUser: true
 });
+
+//VALIDATED
+Moralis.Cloud.define('get_item', async (req) => {
+    
+    const { item_id, item_kind} = req.params;
+
+    const query_item = new Moralis.Query(item_kind);
+
+    try {
+        const item_required = await query_item.get(item_id, { useMasterKey:true })
+
+        return {
+            item: item_required,
+            message: 'Item required'
+        }
+    } catch (error) {
+        return error.message
+    }
+},{
+    fields:{
+        item_id:{
+            ...validation_id,
+            error: "item_id is not passed or has an error"
+        },
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT'
+            },
+            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+        }
+    },
+    requireUser: true
+});

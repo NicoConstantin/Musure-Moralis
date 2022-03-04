@@ -1,7 +1,8 @@
 //VALIDATED
 Moralis.Cloud.define('get_marketplace', async (req) => {
 
-    const { filter, sort, myListing, type } = req.params
+    const { filter, sort, myListing, item_kind } = req.params;
+    const user = req.user;
 
     //VALIDATIONS OF NON REQUIRED FIELDS
     for (const prop in filter) {
@@ -18,26 +19,15 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
         }
     }
 
-    let query_items = ""
+    let query_items = new Moralis.Query(item_kind);
     
-    //DEFINING WHERE TO SEARCH
-    if (type === 'avatar'){
-        query_items = new Moralis.Query('Avatar');
-    }
-    if (type === 'accessory'){
-        query_items = new Moralis.Query('Accessory');
-        query_items.doesNotExist("name");
-        query_items.doesNotExist("lore");
-    }
-
-
     try {
 
         query_items.equalTo('onSale', true)
         query_items.include('owner')
         //DEFINING IF NEEDED TO SEARCH ONLY ON USER'S ITEMS
         if (myListing){
-            query_items.equalTo('owner', req.user)
+            query_items.equalTo('owner', user)
         }
         //FILTERING
         if (filter){
@@ -56,8 +46,8 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             if (filter.priceMax) {
                 query_items.lessThanOrEqualTo('price', filter.priceMax)
             }
-            if (filter.typeAccessory && type === 'accessory'){
-                query_items.equalTo('type', filter.typeAccessory)
+            if (filter.typeItem && item_kind === 'accessory' || item_kind === 'nft'){
+                query_items.equalTo('type', filter.typeItem)
             }
         }
         //SORTING
@@ -78,10 +68,10 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
         query_items.limit(1000)
         query_items.withCount()
 
-        let resultAvatars = await query_items.find({useMasterKey:true})
+        let results = await query_items.find({useMasterKey:true})
 
         return {
-            ...resultAvatars,
+            ...results,
             message: 'Items that were ordered'
         }
 
@@ -90,13 +80,13 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
     }
 },{
     fields:{
-        type:{
+        item_kind:{
             required: true,
             type: String,
             options: val=>{
-                return val === 'avatar' || val === 'accessory'
+                return val === 'Avatar' || val === 'Accessory' || val === 'AccessoryNFT'
             },
-            error: 'type is required and must be equal to avatar or accessory'
+            error: 'item_kind is required and must be equal to Avatar, Accessory or AccessoryNFT'
         }
     },
     requireUser: true
