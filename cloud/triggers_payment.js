@@ -120,15 +120,55 @@ Moralis.Cloud.afterSave("MusureTransfers", async function (req) {
             if(!accessory.attributes.onSale){
                 return 'this accessory is not on sale'
             }
-
+            const copy = new Accesory();
             //TRANSFERING ACCESSORY
-            accessory.set('price', null)
-            accessory.set('onSale', false)
-            accessory.set('publishedTime', -1)
-            accessory.set('owner', user)
-            accessory.setACL(new Moralis.ACL(user))
-            await accessory.save(null, {useMasterKey:true})
+            copy.set('type', accessory.attributes.type)
+            copy.set('rarity', accessory.attributes.rarity)
+            copy.set('rarityNumber', accessory.attributes.rarityNumber)
+            copy.set('power', accessory.attributes.power)
+            copy.set('durationleft', accessory.attributes.durationleft)
+            copy.set('price', null)
+            copy.set('onSale', false)
+            copy.set('publishedTime', -1)
+            copy.set('owner', user)
+            copy.setACL(new Moralis.ACL(user))
+            await copy.save(null, {useMasterKey:true})
+            await accessory.destroy({ useMasterKey: true })
             logger.info(JSON.stringify('ACCESSORY TRANSFERED'))
+
+            break;
+
+        case 'marketNFT':
+    
+            let nft = await query_nft.get(data.nft_id, {useMasterKey: true})
+    
+            //VALIDATING CONTEXT
+            if(nft.attributes.owner.id === user.id){
+                return 'you cannot buy your own accessory'
+            }
+            if(!nft.attributes.onSale){
+                return 'this NFT is not on sale'
+            }
+
+            const copyNFT = new NFT();
+            //TRANSFERING ACCESSORY
+            copyNFT.set('name', nft.attributes.name)
+            copyNFT.set('lore', nft.attributes.lore)
+            copyNFT.set('type', nft.attributes.type)
+            copyNFT.set('rarity', nft.attributes.rarity)
+            copyNFT.set('rarityNumber', nft.attributes.rarityNumber)
+            copyNFT.set('power', nft.attributes.power)
+            copyNFT.set('textureLeft', nft.attributes.textureLeft)
+            copyNFT.set('textureRight', nft.attributes.textureRight)
+            copyNFT.set('imageNFT', nft.attributes.imageNFT)
+            copyNFT.set('price', null)
+            copyNFT.set('onSale', false)
+            copyNFT.set('publishedTime', -1)
+            copyNFT.set('owner', user)
+            copyNFT.setACL(new Moralis.ACL(user))
+            await copyNFT.save(null, {useMasterKey:true})
+            await nft.destroy({ useMasterKey: true })
+            logger.info(JSON.stringify('NFT TRANSFERED'))
 
             break;
 

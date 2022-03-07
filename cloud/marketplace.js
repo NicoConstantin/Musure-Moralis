@@ -46,7 +46,7 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             if (filter.priceMax) {
                 query_items.lessThanOrEqualTo('price', filter.priceMax)
             }
-            if (filter.typeItem && item_kind === 'accessory' || item_kind === 'nft'){
+            if (filter.typeItem && item_kind === 'Accessory' || item_kind === 'AccessoryNFT'){
                 query_items.equalTo('type', filter.typeItem)
             }
         }

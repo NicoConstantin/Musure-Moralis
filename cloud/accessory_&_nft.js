@@ -1,4 +1,5 @@
 const Accesory = Moralis.Object.extend('Accessory');
+const NFT = Moralis.Object.extend('AccessoryNFT');
 
 //VALIDATED
 Moralis.Cloud.define('get_master_accessories', async(req) => {

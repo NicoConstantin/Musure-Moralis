@@ -23,8 +23,11 @@ Moralis.Cloud.define('payment', async (req) => {
         
         //VALIDATIONS
         if(data){
-            const { name, lore, rarity, amount_emit, price, type, texture_left, texture_right, imageNFT, avatar_id, party_id, time_contract, accessory_id } = data;
+            const { name, lore, rarity, amount_emit, price, type, texture_left, texture_right, imageNFT, avatar_id, party_id, time_contract, accessory_id, nft_id } = data;
             
+            if(nft_id && typeof(nft_id) !== 'string' && !nft_id?.length === 24){
+                return "data.nft_id does not satisfy the required conditions"
+            }
             if(avatar_id && typeof(avatar_id) !== 'string' && !avatar_id?.length === 24){
                 return "data.avatar_id does not satisfy the required conditions"
             }
