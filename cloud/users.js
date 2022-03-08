@@ -64,8 +64,12 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
             query_same_twitter.equalTo('creatorTwitter', twitter)
             query_same_twitter.notEqualTo('objectId', user.id)
             const sameTwitterExist = await query_same_twitter.find({useMasterKey: true})
+            
             if(sameTwitterExist.length>0){
-                return 'That twitter is already on use'
+                return {
+                    twitterExist: true,
+                    message:'That twitter is already on use'
+                }
             }
             
             //HITTING TWITTER API
@@ -94,7 +98,10 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
             query_same_instagram.notEqualTo('objectId', user.id)
             const sameInstagramExist = await query_same_instagram.find({useMasterKey: true})
             if(sameInstagramExist.length>0){
-                return 'That instagram is already on use'
+                return {
+                    instagramExist: true,
+                    message:'That instagram is already on use'
+                }
             }
             
             //SETTING INSTAGRAM FIELDS
