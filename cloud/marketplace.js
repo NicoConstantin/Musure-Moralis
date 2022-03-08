@@ -1,16 +1,16 @@
 //VALIDATED
 Moralis.Cloud.define('get_marketplace', async (req) => {
 
-    const { filter, sort, myListing, item_kind } = req.params;
+    const { filter, sort, myListing, item_kind } = req.params;    
     const user = req.user;
 
     //VALIDATIONS OF NON REQUIRED FIELDS
     for (const prop in filter) {
-        if(prop !== "typeAccessory" && typeof(filter[prop]) !== 'number' ){
+        if(prop !== "typeItem" && typeof(filter[prop]) !== 'number' ){
             return 'a filter property is not a number'
         }
-        if(prop === "typeAccessory" && typeof(filter[prop]) !== 'string' ){
-            return 'filter typeAccessory must be a string'
+        if(prop === "typeItem" && typeof(filter[prop]) !== 'string' ){
+            return 'filter typeItem must be a string'
         }
     }
     for (const prop in sort) {
@@ -46,7 +46,7 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             if (filter.priceMax) {
                 query_items.lessThanOrEqualTo('price', filter.priceMax)
             }
-            if (filter.typeItem && item_kind === 'Accessory' || item_kind === 'AccessoryNFT'){
+            if (filter.typeItem && item_kind.includes('Accessory')){
                 query_items.equalTo('type', filter.typeItem)
             }
         }
