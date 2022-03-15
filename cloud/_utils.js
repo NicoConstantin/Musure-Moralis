@@ -1,3 +1,13 @@
+const logger = Moralis.Cloud.getLogger()
+const Accesory = Moralis.Object.extend('Accessory');
+const NFT = Moralis.Object.extend('AccessoryNFT');
+const Avatar = Moralis.Object.extend('Avatar');
+const Egg = Moralis.Object.extend('Egg');
+const Mission = Moralis.Object.extend('MISSION_MASTER');
+const Party = Moralis.Object.extend('Party');
+const room = Moralis.Object.extend('Room');
+const movements = Moralis.Object.extend('Movements');
+
 const cooldown_set_time = 1;
 const cooldown_set_type = 'hour';
 

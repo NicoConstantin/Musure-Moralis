@@ -1,4 +1,3 @@
-const toolkitObj = Moralis.Object.extend('ToolkitValidating')
 
 Moralis.Cloud.define('get_economy_data', async (req) => {
     
