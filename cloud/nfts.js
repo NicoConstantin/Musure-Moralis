@@ -1,5 +1,4 @@
 
-//VALIDATED
 Moralis.Cloud.define('get_nfts_assets', async (req) => {
 
     const query_nfts_assets_main = new Moralis.Query('NFT_ASSETS_MAIN');
@@ -16,7 +15,6 @@ Moralis.Cloud.define('get_nfts_assets', async (req) => {
     }
 });
 
-//VALIDATED
 Moralis.Cloud.define('get_items', async (req) => {
 
     const { filter, sort, item_kind } = req.params;
@@ -60,115 +58,23 @@ Moralis.Cloud.define('get_items', async (req) => {
     requireUser: true 
 });
 
-//VALIDATED
-Moralis.Cloud.define('put_onsale_item', async (req) => {
-
-    const { price, item_id, item_kind } = req.params;
-    
-    const query_avatar = new Moralis.Query('Avatar');
-    const query_item = new Moralis.Query(item_kind);
-    
-    try {
-        let item = await query_item.get(item_id, {useMasterKey:true});
-
-        //VALIDATING CONTEXT
-        if(item.attributes.equippedOn){
-            let avatar_to_unequip = await query_avatar.get(item.attributes.equippedOn, {useMasterKey:true})
-
-            //UNEQUIPPING ITEM FROM AVATAR
-            avatar_to_unequip.set(item.attributes.type.toLowerCase(), null)
-            avatar_to_unequip.set('power', avatar_to_unequip.attributes.power - item.attributes.power)
-            await avatar_to_unequip.save(null, {useMasterKey:true})
-        }
-
-        //SETTING ACCESORY FIELDS
-        item.set('price', price)
-        item.set('onSale', true)
-        item.set('publishedTime', getDate())
-        await item.save(null, {useMasterKey:true})
-
-        return {
-            onSale: true,
-            message: 'Item was successfully put on sale'
-        }
-
-    } catch (error) {
-        return error.message
-    }
-},{
-    fields:{
-        price: validation_price,
-        item_id:{
-            ...validation_id,
-            error: "item_id is not passed or has an error"
-        },
-        item_kind:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val === 'Accessory' || val === 'AccessoryNFT'
-            },
-            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
-        }
-    },
-    requireUser: true 
-});
-
-//VALIDATED
-Moralis.Cloud.define('kick_onsale_item', async (req) => {
-
-    const { item_id, item_kind } = req.params;
-    
-    let query_item = new Moralis.Query(item_kind);
-
-    try {
-        let item = await query_item.get(item_id, {useMasterKey:true});
-
-        //SETTING ITEM FIELDS
-        item.set('price', null)
-        item.set('onSale', false)
-        item.set('publishedTime', -1)
-        await item.save(null, {useMasterKey:true})
-
-        return {
-            removed: true,
-            message: 'Item was successfully removed from sale'
-        }
-
-    } catch (error) {
-        return error.message
-    }
-},{
-    fields:{
-        item_id:{
-            ...validation_id,
-            error: "item_id is not passed or has an error"
-        },
-        item_kind:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val === 'Accessory' || val === 'AccessoryNFT'
-            },
-            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
-        }
-    },
-    requireUser: true
-});
-
-//VALIDATED
 Moralis.Cloud.define('get_nft', async (req) => {
     
     const nft_id = req.params.nft_id;
     
     try {
-        const query_nft = new Moralis.Query('AccessoryNFT');
-        query_nft.equalTo('idNFT', nft_id)
-        const nft_required = await query_nft.first({ useMasterKey:true })
+        const query_nfts = new Moralis.Query('AccessoryNFT');
+        query_nfts.equalTo('idNFT', nft_id)
+        const nfts_raw = await query_nfts.find({ useMasterKey:true })
+        const nfts_onsale_left = nfts_raw.filter(nft=>nft.attributes.onSale)
+        const nfts_original_onsale = nfts_raw.filter(nft=>nft.attributes.onSale && nft.attributes.createdBy.id === nft.attributes.owner.id)
 
         return {
-            nft: nft_required,
-            message: 'Item required'
+            nft: nfts_raw[0],
+            amount_emitted: nfts_raw.length,
+            amount_onsale_left: nfts_onsale_left.length,
+            amount_original_onsale_left: nfts_original_onsale.length,
+            message: 'NFT required'
         }
     } catch (error) {
         return error.message
@@ -179,8 +85,7 @@ Moralis.Cloud.define('get_nft', async (req) => {
             ...validation_id,
             error: "Nft_id is not passed or has an error"
         }
-    },
-    requireUser: true
+    }
 });
 
 Moralis.Cloud.define('create_nft', async (req) => {
@@ -264,6 +169,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
             new_NFT.set('textureRight', texture_right);
             new_NFT.set('imageNFT', imageNFT);
             new_NFT.set('owner', user);
+            new_NFT.set('createdBy', user)
             new_NFT.set('royalties', royalties);
             new_NFT.set('blockchain', blockchain);
             new_NFT.set('collection', collection);
@@ -278,9 +184,9 @@ Moralis.Cloud.define('create_nft', async (req) => {
                 new_NFT.set('onSale', true);
                 new_NFT.set('publishedTime', getDate());
             }
-            
-            new_NFT.set('blocked', false);   
-            new_NFT.set('pending', true);   
+            //VER QUE PASA CON EL PENDING
+            new_NFT.set('blocked', false);
+            new_NFT.set('pending', true);
 
             await new_NFT.save(null,{useMasterKey: true});
             logger.info(JSON.stringify(`NFT number ${i} from ${user.id} created`));
@@ -415,4 +321,26 @@ Moralis.Cloud.define('create_nft', async (req) => {
         },
     },
     requireUser: true
+});
+
+Moralis.Cloud.define('get_nft_economy', async (req) => {
+    
+    const query_economy = new Moralis.Query('ECONOMY')
+
+    try {
+        query_economy.containedIn("reference", ["commission_marketplace", "commission_musure", "cost_nft_creation",'property_nft_owner'])
+        const economyData = await query_economy.find({useMasterKey: true})
+        let economyObj = {};
+
+        for (let i = 0; i < economyData.length; i++) {
+            economyObj[economyData[i].attributes.reference] = economyData[i].attributes.price
+        }
+        return {
+            economy: economyObj,
+            message: 'Economy Data'
+        }
+
+    } catch (error) {
+        return error.message
+    }
 });
