@@ -242,6 +242,48 @@ Moralis.Cloud.define('kick_onsale_item', async (req) => {
     },
     requireUser: true
 });
+Moralis.Cloud.define('get_items', async (req) => {
+
+    const { filter, sort, item_kind } = req.params;
+    const user = req.user;
+    
+    try {
+        let results = {};
+        
+        if(item_kind === 'Accessory' || item_kind === 'All'){
+            results = {
+                ...results,
+                accessories: await getItems('Accessory', filter, sort, user)
+            }
+        }
+        if(item_kind === 'AccessoryNFT' || item_kind === 'All'){
+            results = {
+                ...results,
+                nfts: await getItems('AccessoryNFT', filter, sort, user)
+            }
+        }
+        return {
+            results,
+            count: results.nfts.length + results.accessories.length,
+            message: 'Items that were ordered'
+        }
+
+    } catch (error) {
+        return error.message
+    }
+},{
+    fields:{
+        item_kind:{
+            required: true,
+            type: String,
+            options: val=>{
+                return val === 'Accessory' || val === 'AccessoryNFT' || val === 'All'
+            },
+            error:"item_kind must be equal to 'Accessory', 'All' or 'AccessoryNFT'"
+        },
+    },
+    requireUser: true 
+});
 //----------------------------AVATARS----------------------------
 Moralis.Cloud.define('mint_avatar', async (req) => {
 
