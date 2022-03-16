@@ -7,6 +7,7 @@ const Mission = Moralis.Object.extend('MISSION_MASTER');
 const Party = Moralis.Object.extend('Party');
 const room = Moralis.Object.extend('Room');
 const movements = Moralis.Object.extend('Movements');
+const collection = Moralis.Object.extend('Collection');
 
 const cooldown_set_time = 1;
 const cooldown_set_type = 'hour';
