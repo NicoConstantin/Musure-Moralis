@@ -157,17 +157,17 @@ Moralis.Cloud.define('kick_onsale_item', async (req) => {
 });
 
 //VALIDATED
-Moralis.Cloud.define('get_item', async (req) => {
+Moralis.Cloud.define('get_nft', async (req) => {
     
-    const { item_id, item_kind} = req.params;
-
-    const query_item = new Moralis.Query(item_kind);
-
+    const nft_id = req.params.nft_id;
+    
     try {
-        const item_required = await query_item.get(item_id, { useMasterKey:true })
+        const query_nft = new Moralis.Query('AccessoryNFT');
+        query_nft.equalTo('idNFT', nft_id)
+        const nft_required = await query_nft.first({ useMasterKey:true })
 
         return {
-            item: item_required,
+            nft: nft_required,
             message: 'Item required'
         }
     } catch (error) {
@@ -175,17 +175,9 @@ Moralis.Cloud.define('get_item', async (req) => {
     }
 },{
     fields:{
-        item_id:{
+        nft_id:{
             ...validation_id,
-            error: "item_id is not passed or has an error"
-        },
-        item_kind:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val === 'Accessory' || val === 'AccessoryNFT'
-            },
-            error:"item_kind must be equal to 'Accessory' or 'AccessoryNFT'"
+            error: "Nft_id is not passed or has an error"
         }
     },
     requireUser: true
@@ -214,7 +206,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
             if(date && typeof date !== 'string' || date.length !== 24){
                 return 'Date must comply with the required parameters'
             }
-            if(time && typeof time !== 'string' || regexTime.test(time)){
+            if(time && typeof time !== 'string' || !regexTime.test(time)){
                 return 'Time must comply with the required regex'
             }
             if(utc && typeof utc !== 'number' || utc < -11 || utc > 13){
@@ -222,7 +214,6 @@ Moralis.Cloud.define('create_nft', async (req) => {
             }
 
             //PROCESSING TIME
-            if(date)
             unixstamp = Math.floor(Date.parse(date.slice(0,10)) / 1000 )
             let arrayTime = time.split(':')
             let hour = Number(arrayTime[0])
@@ -230,16 +221,40 @@ Moralis.Cloud.define('create_nft', async (req) => {
             unixstamp = unixstamp + ((hour - utc) * 3600)
             unixstamp = unixstamp + (minutes * 60)
         }
+        
+        //GENERATING ID FOR NFT
+        let userID= user.id
+        const nameTrimmed = name.split(" ").join("")
+        let nftID = ""
+        for (let j = 0; j < nameTrimmed.length; j++) {
+            
+            nftID= nftID + userID[j] + nameTrimmed[j] + Math.floor(Math.random() * 10)
+            
+            if(j+1 >= nameTrimmed.length){
+                nftID = nftID + userID.slice(j+1)
+                break;
+            }
 
+            if(j+1 >= userID.length){
+                nftID = nftID + nameTrimmed.slice(j+1)
+                break;
+            }
+        }
+
+        nftID = nftID.slice(0,24).split("").reverse().join("")
+
+        //SETTING NOTIFICATION FIELDS
         if(notification_new_assets || notification_newsletter){
             user.set('notificationNewsletter', notification_newsletter);
             user.set('notificationNewAsset', notification_new_assets);
             await user.save(null,{ useMasterKey: true })
         }
 
+        //CREATING NFTS
         for (let i = 0; i < amount_emit; i++) {
             const new_NFT = new NFT();
             new_NFT.setACL(new Moralis.ACL(user));
+            new_NFT.set('idNFT', nftID);
             new_NFT.set('name', name);
             new_NFT.set('lore', lore);
             new_NFT.set('type', type);
