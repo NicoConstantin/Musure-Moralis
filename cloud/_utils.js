@@ -20,6 +20,8 @@ const max_length_names = 15;
 const min_length_bio = 1;
 const max_length_bio = 70;
 
+let regex_ipfs_moralis = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?(ipfs.moralis.io)(:[0-9]{1,5})?(\/.*)?$/
+
 let validation_id = {
     required: true,
     type: String,
