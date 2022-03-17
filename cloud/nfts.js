@@ -301,3 +301,42 @@ Moralis.Cloud.define('get_nft_economy', async (req) => {
         return error.message
     }
 });
+
+Moralis.Cloud.define('buy_nft', async (req) => {
+
+    const nft_id = req.params.nft_id;
+
+    const user = req.user;
+    
+    try {
+        const query_nft = new Moralis.Query('AccessoryNFT');
+        query_nft.equalTo('idNFT', nft_id)
+        query_nft.equalTo('onSale', true)
+        const nfts_raw_array = await query_nft.find({useMasterKey: true})
+        if(nfts_raw_array.length === 0){
+            return "This NFT is not for sale now"
+        }
+        let nft_bought = nfts_raw_array.pop()
+
+        nft_bought.setACL(new Moralis.ACL(user))
+        nft_bought.set('owner', user)
+        nft_bought.set('price', null)
+        nft_bought.set('onSale', false)
+        nft_bought.set('publishedTime', null)
+        nft_bought.set('pending', true)
+        nft_bought.set('releaseTime', null)
+        nft_bought.set('royalties', null)
+        await nft_bought.save(null, {useMasterKey: true})
+        return{
+            bought: true,
+            message: 'NFT transfered'
+        }
+
+    } catch (error) {
+        return {
+            bought: false,
+            message: error.message
+        }    
+    }
+
+});
