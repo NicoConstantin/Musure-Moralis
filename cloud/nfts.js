@@ -47,41 +47,56 @@ Moralis.Cloud.define('get_nft', async (req) => {
 
 Moralis.Cloud.define('create_nft', async (req) => {
     
-    const { name, lore, type, rarity, amount_emit, texture_left, texture_right, imageNFT, price, royalties, blockchain, collection_id, date, time, utc, release_time, notification_newsletter, notification_new_assets } = req.params;
+    const { name, lore, type, rarity, amount_emit, texture_left, texture_right, imageNFT, price, royalties, blockchain, collection_id, date, time, timezone, release_time, notification_newsletter, notification_new_assets } = req.params;
 
     const user = req.user;
+    let collection;
 
     try {
         const query_rarities_accessories = new Moralis.Query ('ACCESSORY_RARITY_MASTER');
         query_rarities_accessories.equalTo('rarity', rarity);
         let rarity_chosen = await query_rarities_accessories.first({ useMasterKey: true});
 
-        const query_collection = new Moralis.Query('Collection')
-        const collection = await query_collection.get(collection_id, {useMasterKey: true})
+        if(collection_id !== 'unique'){
+            const query_collection = new Moralis.Query('Collection')
+            collection = await query_collection.get(collection_id, {useMasterKey: true})
+        }
 
         let unixstamp = 0
         
         if(release_time){
             //VALIDATING TIME PARAMETERS
             let regexTime = /^([0-1][0-9]|[2][0-3]):([0-5][0-9])$/
+            let regexDate = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/
+            let regexTimezone = /^-?([0-1][0-9]|[2][0-3]):([0-5][0-9])$/
 
-            if(date && typeof date !== 'string' || date.length !== 24){
+            if(date && typeof date !== 'string' || !regexDate.test(date)){
                 return 'Date must comply with the required parameters'
             }
             if(time && typeof time !== 'string' || !regexTime.test(time)){
                 return 'Time must comply with the required regex'
             }
-            if(utc && typeof utc !== 'number' || utc < -11 || utc > 13){
-                return 'UTC must comply with the required parameters'
+            if(timezone && typeof timezone !== 'string' || !regexTimezone.test(time)){
+                return 'Timezone must comply with the required parameters'
             }
 
+            //PROCESSING DATE
+            unixstamp = Math.floor(Date.parse(date) / 1000 )
+
             //PROCESSING TIME
-            unixstamp = Math.floor(Date.parse(date.slice(0,10)) / 1000 )
             let arrayTime = time.split(':')
-            let hour = Number(arrayTime[0])
-            let minutes = Number(arrayTime[1])
-            unixstamp = unixstamp + ((hour - utc) * 3600)
-            unixstamp = unixstamp + (minutes * 60)
+            let hourTime = Number(arrayTime[0])
+            let minutesTime = Number(arrayTime[1])
+
+            //PROCESSING TIMEZONE
+            //REVISAR
+            let arrayTimezone = time.split(':')
+            let hourTimezone = Number(arrayTimezone[0])
+            let minutesTimezone = Number(arrayTimezone[1])
+
+            //JOINING ALL DATE INFO
+            unixstamp = unixstamp + ((hourTime - hourTimezone) * 3600)
+            unixstamp = unixstamp + ((minutesTime + minutesTimezone) * 60)
         }
         
         //GENERATING ID FOR NFT
@@ -129,7 +144,9 @@ Moralis.Cloud.define('create_nft', async (req) => {
             new_NFT.set('createdBy', user)
             new_NFT.set('royalties', royalties);
             new_NFT.set('blockchain', blockchain);
-            new_NFT.set('collection', collection);
+            if(collection){
+                new_NFT.set('collection', collection);
+            }
             new_NFT.set('price', price);
 
             if(release_time){
@@ -258,7 +275,11 @@ Moralis.Cloud.define('create_nft', async (req) => {
             error: `Blockchain must be equal to Polygon`
         },
         collection_id:{
-            ...validation_id,
+            required: true,
+            type: String,
+            options: val=>{
+                return val.length === 24 || val === 'unique'
+            },
             error: 'Collection_id is not a valid ID'
         },
         release_time:{
