@@ -23,6 +23,9 @@ Moralis.Cloud.define('get_nft', async (req) => {
         const query_nfts = new Moralis.Query('AccessoryNFT');
         query_nfts.equalTo('idNFT', nft_id)
         const nfts_raw = await query_nfts.find({ useMasterKey:true })
+        if(nfts_raw.length <=0){
+            throw new Error('idNFT not existent')
+        }
         const nfts_onsale_left = nfts_raw.filter(nft=>nft.attributes.onSale)
         const nfts_original_onsale = nfts_raw.filter(nft=>nft.attributes.onSale && nft.attributes.createdBy.id === nft.attributes.owner.id)
 
@@ -89,8 +92,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
             let minutesTime = Number(arrayTime[1])
 
             //PROCESSING TIMEZONE
-            //REVISAR
-            let arrayTimezone = time.split(':')
+            let arrayTimezone = timezone.split(':')
             let hourTimezone = Number(arrayTimezone[0])
             let minutesTimezone = Number(arrayTimezone[1])
 
@@ -167,7 +169,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
         }
 
         return {
-            created: true,
+            created: nftID,
             message: `${amount_emit} NFT's created`
         }
 
@@ -210,7 +212,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
             required: true,
             type: Number,
             options: val=>{
-                const qty_emit = [5, 10, 20, 30, 40, 50]
+                const qty_emit = [1, 10, 25, 50, 100]
                 return qty_emit.includes(val)
             },
             error: `Amount_emit must be a number and one of the declared`

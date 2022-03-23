@@ -6,10 +6,10 @@ Moralis.Cloud.define('create_collection', async (req) => {
 
         const new_collection = new collection();
         new_collection.set('name', name)
-        await new_collection.save(null, {useMasterKey: true})
-
+        const collection_created = await new_collection.save(null, {useMasterKey: true})
+        logger.info(JSON.stringify(collection_created))
         return{
-            created:true,
+            created: collection_created,
             message: 'Collection created'
         }
 
