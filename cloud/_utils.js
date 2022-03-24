@@ -22,6 +22,7 @@ const min_length_bio = 1;
 const max_length_bio = 70;
 
 let regex_ipfs_moralis = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?(ipfs.moralis.io)(:[0-9]{1,5})?(\/.*)?$/
+let regex_email = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 let validation_id = {
     required: true,

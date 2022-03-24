@@ -42,17 +42,32 @@ Moralis.Cloud.define('get_data_user', async (req) => {
         }
     }
     
+},{
+    fields:{
+        user_id:{
+            ...validation_id,
+            message: 'User_id is not a valid ID'
+        }
+    }
 });
 
 Moralis.Cloud.define('save_email', async (req) => {
     
-    const email = req.params.email;
+    const { email, source } = req.params;
     const user = req.user;
 
     try {
-        user.set('creatorEmail', email)
+        if(!user.attributes.creatorEmail){
+            user.set('creatorEmail', email)
+        }
+        if(source === 'teaser'){
+            user.set('flagTeaser', true)
+        }
+        if(source === 'filterAR'){
+            user.set('flagAR', true)
+        }
         await user.save(null,{useMasterKey: true})
-        
+
         return {
             saved:true,
             message: 'Email saved'
@@ -62,6 +77,25 @@ Moralis.Cloud.define('save_email', async (req) => {
         return {
             saved: false,
             message: error.message
+        }
+    }
+},{
+    fields:{
+        email:{
+            required:true,
+            type: String,
+            options: val=>{
+                return regex_email.test(val)
+            },
+            error: `Email must satisfy regex`
+        },
+        source:{
+            required:true,
+            type: String,
+            options: val =>{
+                return val === 'teaser' || val === 'filterAR'
+            },
+            message: 'Source must be equal to teaser or filterAR'
         }
     }
 });
