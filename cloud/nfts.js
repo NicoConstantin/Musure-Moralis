@@ -147,23 +147,29 @@ Moralis.Cloud.define('create_nft', async (req) => {
             new_NFT.set('createdBy', user)
             new_NFT.set('royalties', royalties);
             new_NFT.set('blockchain', blockchain);
+
             if(collection){
                 new_NFT.set('collection', collection);
             }
+            if(!collection){
+                new_NFT.set('collection', null);
+            }
+
             new_NFT.set('price', price);
 
             if(release_time){
                 new_NFT.set('releaseTime', unixstamp);
                 new_NFT.set('onSale', false);
-                new_NFT.set('publishedTime', -1);
-            } else {
-                new_NFT.set('releaseTime', -1);
+                new_NFT.set('publishedTime', null);
+            }
+            if(!release_time) {
+                new_NFT.set('releaseTime', null);
                 new_NFT.set('onSale', true);
                 new_NFT.set('publishedTime', getDate());
             }
             //VER QUE PASA CON EL PENDING
-            new_NFT.set('blocked', false);
-            new_NFT.set('pending', true);
+            // new_NFT.set('blocked', false);
+            // new_NFT.set('pending', true);
 
             await new_NFT.save(null,{useMasterKey: true});
             logger.info(JSON.stringify(`NFT number ${i} from ${user.id} created`));

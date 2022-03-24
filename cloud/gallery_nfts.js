@@ -6,11 +6,6 @@ Moralis.Cloud.define('get_gallery', async (req) => {
     const query_user = new Moralis.Query('User');
 
     try {
-        query_user.equalTo('creatorName', user_name)
-        const user_asked = await query_user.first({useMasterKey: true})
-        query_user_NFT.equalTo('owner', user_asked)
-        query_user_NFT.equalTo("power", 0);
-        query_user_NFT.equalTo("onSale", true);
 
         for (const prop in filter) {
             if(prop && prop !== "type" && typeof(filter[prop]) !== 'number' ){
@@ -25,6 +20,10 @@ Moralis.Cloud.define('get_gallery', async (req) => {
                 return 'sort properties must be equal to ascending or descending'
             }
         }
+        query_user.equalTo('creatorName', user_name)
+        const user_asked = await query_user.first({useMasterKey: true})
+        query_user_NFT.equalTo('owner', user_asked)
+        query_user_NFT.equalTo("onSale", true);
 
         //FILTERING
         if (filter){

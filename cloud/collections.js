@@ -1,11 +1,13 @@
 Moralis.Cloud.define('create_collection', async (req) => {
 
     const name = req.params.name;
+    const user = req.user;
 
     try {
 
         const new_collection = new collection();
         new_collection.set('name', name)
+        new_collection.set('owner', user)
         const collection_created = await new_collection.save(null, {useMasterKey: true})
         logger.info(JSON.stringify(collection_created))
         return{
@@ -60,14 +62,14 @@ Moralis.Cloud.define('edit_collection', async (req) => {
         await collection_found.save(null, {useMasterKey: true})
 
         return{
-            deleted:true,
-            message: 'Collection deleted'
+            edited:true,
+            message: 'Collection edited'
         }
 
     } catch (error) {
 
         return{
-            deleted: false,
+            edited: false,
             error: error.message
         }
     }
