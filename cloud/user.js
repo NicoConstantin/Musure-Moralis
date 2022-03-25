@@ -129,3 +129,38 @@ Moralis.Cloud.define('request_media', async (req) => {
         }
     }
 });
+
+Moralis.Cloud.define('ask_for_request', async (req) => {
+
+    const nft_id = req.params.nft_id;
+    const user = req.user;
+
+    try {
+        const query_request = new Moralis.Query('PendingOrder')
+        query_request.equalTo('idNFT', nft_id)
+        query_request.equalTo('requester', user)
+        const exist_request = await query_request.first({useMasterKey: true})
+        logger.info(JSON.stringify(exist_request))
+        if(exist_request){
+            return {
+                requestedTeaser: exist_request.attributes.requestTeaser,
+                requestedAR: exist_request.attributes.requestAR,
+                message: 'Info about the request'
+            }
+        }
+        else{
+            return{
+                requestedTeaser: false,
+                requestedAR: false,
+                message: 'Not request done'
+            }
+        }
+        
+    } catch (error) {
+        return {
+            requested: false,
+            message: error.message
+        }
+    }
+    
+});
