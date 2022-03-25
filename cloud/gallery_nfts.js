@@ -21,7 +21,7 @@ Moralis.Cloud.define('get_gallery', async (req) => {
             }
         }
         const user_asked = await query_user.get(user_id, {useMasterKey: true})
-        
+
         query_user_NFT.equalTo('owner', user_asked)
         query_user_NFT.equalTo("onSale", true);
 
@@ -80,9 +80,22 @@ Moralis.Cloud.define('get_gallery', async (req) => {
             }
         })
 
+        let nfts_ids_aux = []
+        let nfts_send = []
+
+        for (let i = 0; i < NFTs.length; i++) {
+            if(!nfts_ids_aux.includes(NFTs[i].attributes.idNFT)){
+                nfts_ids_aux.push(NFTs[i].attributes.idNFT)
+                nfts_send.push(NFTs[i])
+            }
+            else{
+                continue;
+            }
+        }
+
         return {
-            results: NFTs,
-            count : resultAccessories.count,
+            results: nfts_send,
+            count : nfts_send.length,
             creator: user_asked,
             message: 'Items that were ordered'
         }
