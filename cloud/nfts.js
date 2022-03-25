@@ -23,6 +23,7 @@ Moralis.Cloud.define('get_nft', async (req) => {
         const query_nfts = new Moralis.Query('AccessoryNFT');
         query_nfts.equalTo('idNFT', nft_id)
         query_nfts.include('collection')
+        query_nfts.include('owner')
         const nfts_raw = await query_nfts.find({ useMasterKey:true })
         if(nfts_raw.length <=0){
             throw new Error('idNFT not existent')

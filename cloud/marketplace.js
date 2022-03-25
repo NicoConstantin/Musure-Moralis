@@ -1,7 +1,7 @@
 //VALIDATED
 Moralis.Cloud.define('get_marketplace', async (req) => {
 
-    const { filter, sort, myListing, item_kind } = req.params;    
+    const { filter, sort, myListing } = req.params;    
     const user = req.user;
 
     //VALIDATIONS OF NON REQUIRED FIELDS
@@ -19,75 +19,74 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
         }
     }
 
-    let query_items = new Moralis.Query(item_kind);
+    let query_nfts = new Moralis.Query('AccessoryNFT');
     
     try {
 
-        query_items.equalTo('onSale', true)
-        query_items.include('owner')
+        query_nfts.equalTo('onSale', true)
+        query_nfts.include('owner')
         //DEFINING IF NEEDED TO SEARCH ONLY ON USER'S ITEMS
         if (myListing){
-            query_items.equalTo('owner', user)
+            query_nfts.equalTo('owner', user)
         }
         //FILTERING
         if (filter){
             if (filter.rarity) {
-                query_items.equalTo('rarityNumber', filter.rarity)
+                query_nfts.equalTo('rarityNumber', filter.rarity)
             }
             if (filter.powerMin) {
-                query_items.greaterThanOrEqualTo('power', filter.powerMin)
+                query_nfts.greaterThanOrEqualTo('power', filter.powerMin)
             }
             if (filter.powerMax) {
-                query_items.lessThanOrEqualTo('power', filter.powerMax)
+                query_nfts.lessThanOrEqualTo('power', filter.powerMax)
             }
             if (filter.priceMin) {
-                query_items.greaterThanOrEqualTo('price', filter.priceMin)
+                query_nfts.greaterThanOrEqualTo('price', filter.priceMin)
             }
             if (filter.priceMax) {
-                query_items.lessThanOrEqualTo('price', filter.priceMax)
+                query_nfts.lessThanOrEqualTo('price', filter.priceMax)
             }
-            if (filter.typeItem && item_kind.includes('Accessory')){
-                query_items.equalTo('type', filter.typeItem)
+            if (filter.typeItem){
+                query_nfts.equalTo('type', filter.typeItem)
             }
         }
         //SORTING
         if (sort){
             if(sort.rarity){
-                query_items[sort.rarity]('rarityNumber')
+                query_nfts[sort.rarity]('rarityNumber')
             }
             if(sort.price){
-                query_items[sort.price]('price')
-            }
-            if(sort.power){
-                query_items[sort.power]('power')
+                query_nfts[sort.price]('price')
             }
             if(sort.publishedTime){
-                query_items[sort.publishedTime]('publishedTime')
+                query_nfts[sort.publishedTime]('publishedTime')
             }
         }
-        query_items.limit(1000)
-        query_items.withCount()
+        query_nfts.limit(1000)
 
-        let results = await query_items.find({useMasterKey:true})
+        const results = await query_nfts.find({useMasterKey:true})
+
+        let nfts_ids_aux = []
+        let nfts = []
+
+        for (let i = 0; i < results.length; i++) {
+            if(!nfts_ids_aux.includes(results[i].attributes.idNFT)){
+                nfts_ids_aux.push(results[i].attributes.idNFT)
+                nfts.push(results[i])
+            }
+            else{
+                continue;
+            }
+        }
+
 
         return {
-            ...results,
+            results: nfts,
+            count: nfts.length,
             message: 'Items that were ordered'
         }
 
     } catch (error) {
         return error.message
     }
-},{
-    fields:{
-        item_kind:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val === 'Avatar' || val === 'Accessory' || val === 'AccessoryNFT'
-            },
-            error: 'item_kind is required and must be equal to Avatar, Accessory or AccessoryNFT'
-        }
-    },
-    requireUser: true
 });

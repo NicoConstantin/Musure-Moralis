@@ -83,6 +83,7 @@ Moralis.Cloud.define('get_gallery', async (req) => {
         return {
             results: NFTs,
             count : resultAccessories.count,
+            creator: user_asked,
             message: 'Items that were ordered'
         }
 
