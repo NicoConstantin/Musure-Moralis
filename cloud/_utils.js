@@ -8,6 +8,7 @@ const Party = Moralis.Object.extend('Party');
 const room = Moralis.Object.extend('Room');
 const movements = Moralis.Object.extend('Movements');
 const collection = Moralis.Object.extend('Collection');
+const order = Moralis.Object.extend('PendingOrder');
 
 const cooldown_set_time = 1;
 const cooldown_set_type = 'hour';

@@ -51,26 +51,52 @@ Moralis.Cloud.define('get_data_user', async (req) => {
     }
 });
 
-Moralis.Cloud.define('save_email', async (req) => {
+Moralis.Cloud.define('request_media', async (req) => {
     
-    const { email, source } = req.params;
+    const { email, source, nft_id } = req.params;
     const user = req.user;
 
     try {
-        if(!user.attributes.creatorEmail){
+
+        if(!user.attributes.creatorEmail && email){
             user.set('creatorEmail', email)
+            await user.save(null,{useMasterKey: true})
         }
-        if(source === 'teaser'){
-            user.set('flagTeaser', true)
+
+        const query_request = new Moralis.Query('PendingOrder')
+        query_request.equalTo('requester', user)
+        query_request.equalTo('idNFT', nft_id)
+        const exist_request = await query_request.first({useMasterKey:true})
+        logger.info(JSON.stringify(exist_request))
+
+        if(!exist_request){
+            const new_order = new order();
+            new_order.set('idNFT', nft_id)
+            new_order.set('requester', user)
+            new_order.set('done', false)
+    
+            if(source === 'teaser'){
+                new_order.set('requestTeaser', true)
+            }
+            if(source === 'filterAR'){
+                new_order.set('requestAR', true)
+            }
+            await new_order.save(null,{useMasterKey: true})
+        } 
+        else {
+            if(source === 'teaser'){
+                exist_request.set('requestTeaser', true)
+            }
+            if(source === 'filterAR'){
+                exist_request.set('requestAR', true)
+            }
+            await exist_request.save(null,{useMasterKey: true})
+
         }
-        if(source === 'filterAR'){
-            user.set('flagAR', true)
-        }
-        await user.save(null,{useMasterKey: true})
 
         return {
             saved:true,
-            message: 'Email saved'
+            message: 'Request saved'
         }
 
     } catch (error) {
@@ -96,6 +122,10 @@ Moralis.Cloud.define('save_email', async (req) => {
                 return val === 'teaser' || val === 'filterAR'
             },
             message: 'Source must be equal to teaser or filterAR'
+        },
+        nft_id:{
+            ...validation_id,
+            message: 'Nft_id is not a valid ID'
         }
     }
 });
