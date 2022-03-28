@@ -9,7 +9,7 @@ Moralis.Cloud.define('create_collection', async (req) => {
         new_collection.set('name', name)
         new_collection.set('owner', user)
         const collection_created = await new_collection.save(null, {useMasterKey: true})
-        logger.info(JSON.stringify(collection_created))
+
         return{
             created: collection_created,
             message: 'Collection created'
@@ -23,36 +23,15 @@ Moralis.Cloud.define('create_collection', async (req) => {
         }
     }
     
-});
-
-Moralis.Cloud.define('delete_collection', async (req) => {
-
-    const collection_id = req.params.name;
-
-    try {
-
-        const query_collection = new Moralis.Query('Collection')
-        let collection_found = await query_collection.get(collection_id, {useMasterKey: true})
-        await collection_found.destroy({useMasterKey: true})
-
-        return{
-            deleted:true,
-            message: 'Collection deleted'
-        }
-
-    } catch (error) {
-
-        return{
-            deleted: false,
-            error: error.message
-        }
+},{
+    fields:{
+        name: validation_name
     }
-    
 });
 
 Moralis.Cloud.define('edit_collection', async (req) => {
 
-    const {collection_id, name }= req.params;
+    const {collection_id, name } = req.params;
 
     try {
 
@@ -74,4 +53,12 @@ Moralis.Cloud.define('edit_collection', async (req) => {
         }
     }
     
+},{
+    fields:{
+        collection_id:{
+            ...validation_id,
+            error: 'Collection_id is not passed or it has an error'
+        },
+        name: validation_name
+    }
 });

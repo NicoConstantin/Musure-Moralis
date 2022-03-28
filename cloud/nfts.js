@@ -71,9 +71,6 @@ Moralis.Cloud.define('create_nft', async (req) => {
         
         if(release_time){
             //VALIDATING TIME PARAMETERS
-            let regexTime = /^([0-1][0-9]|[2][0-3]):([0-5][0-9])$/
-            let regexDate = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/
-            let regexTimezone = /^-?([0-1][0-9]|[2][0-3]):([0-5][0-9])$/
 
             if(date && typeof date !== 'string' || !regexDate.test(date)){
                 return 'Date must comply with the required parameters'
@@ -189,14 +186,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
     }
 },{
     fields:{
-        name:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val.length >= min_length_names && val.length <= max_length_names
-            },
-            error: `Name must be between ${min_length_names} and ${max_length_names} characters length`
-        },
+        name: validation_name,
         lore:{
             required: true,
             type: String,
@@ -205,17 +195,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
             },
             error: `Lore must be between ${min_length_bio} and ${max_length_bio} characters length`
         },
-        rarity:{
-            required: true,
-            type: String,
-            options: async(val)=>{
-                let query_rarities = new Moralis.Query('ACCESSORY_RARITY_MASTER')
-                let raw_rarities = await query_rarities.find({useMasterKey:true})
-                rarities_availables = raw_rarities.map(rar=> rar.attributes.rarity)
-                return rarities_availables.includes(val)
-            },
-            error: `Rarity must be one of the rarities declared`
-        },
+        rarity: validation_rarity,
         amount_emit:{
             required: true,
             type: Number,
@@ -225,54 +205,25 @@ Moralis.Cloud.define('create_nft', async (req) => {
             },
             error: `Amount_emit must be a number and one of the declared`
         },
-        price:{
-            required: true,
-            type: Number,
-            options: val=>{
-                return val > 0
-            },
-            error: `Price must be a positive number`
-        },
-        type:{
-            required: true,
-            type: String,
-            options: async(val)=>{
-                let query_types = new Moralis.Query('ACCESSORY_TYPE_MASTER')
-                let raw_types = await query_types.find({useMasterKey:true})
-                types_availables = raw_types.map(rar=> rar.attributes.type)
-                return types_availables.includes(val)
-            },
-            error: `Type must be one of the types declared`
-        },
+        price: validation_price,
+        type: validation_type,
         texture_left:{
-            required: true,
-            type: String,
-            options: val=>{
-                return regex_ipfs_moralis.test(val)
-            },
+            ...validation_moralis_url,
             error: `Texture_left must satisfy moralisIpfs regex`
         },
         texture_right:{
-            required: true,
-            type: String,
-            options: val=>{
-                return regex_ipfs_moralis.test(val)
-            },
+            ...validation_moralis_url,
             error: `Texture_right must satisfy moralisIpfs regex`
         },
         imageNFT:{
-            required: true,
-            type: String,
-            options: val=>{
-                return regex_ipfs_moralis.test(val)
-            },
+            ...validation_moralis_url,
             error: `ImageNFT must satisfy moralisIpfs regex`
         },
         royalties:{
             required: true,
             type: Number,
             options: val=>{
-                return val > 0
+                return val >= 0 && val <= 100
             },
             error: `Royalties must be a positive number`
         },
@@ -370,6 +321,14 @@ Moralis.Cloud.define('buy_nft', async (req) => {
         }    
     }
 
+},{
+    fields:{
+        nft_id:{
+            ...validation_id,
+            error: 'NFT_id is not passed or it has an error'
+        }
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('change_price_nft', async (req) => {
@@ -406,4 +365,13 @@ Moralis.Cloud.define('change_price_nft', async (req) => {
         }    
     }
 
+},{
+    fields:{
+        nft_id:{
+            ...validation_id,
+            error: 'NFT_id is not passed or it has an error'
+        },
+        price: validation_price
+    },
+    requireUser: true
 });

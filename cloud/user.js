@@ -30,16 +30,11 @@ Moralis.Cloud.define('get_data_user', async (req) => {
         return{
             amount_collections: collections_found.length,
             amount_nfts: nfts_filtered.length,
-            message: 'Collections ordered'
+            message: 'User data ordered'
         }
 
     } catch (error) {
-
-        return{
-            amount_collections: false,
-            amount_nfts: false,
-            error: error.message
-        }
+        return error.message
     }
     
 },{
@@ -67,7 +62,6 @@ Moralis.Cloud.define('request_media', async (req) => {
         query_request.equalTo('requester', user)
         query_request.equalTo('idNFT', nft_id)
         const exist_request = await query_request.first({useMasterKey:true})
-        logger.info(JSON.stringify(exist_request))
 
         if(!exist_request){
             const new_order = new order();
@@ -107,14 +101,7 @@ Moralis.Cloud.define('request_media', async (req) => {
     }
 },{
     fields:{
-        email:{
-            required:true,
-            type: String,
-            options: val=>{
-                return regex_email.test(val)
-            },
-            error: `Email must satisfy regex`
-        },
+        email: validation_email,
         source:{
             required:true,
             type: String,
@@ -125,9 +112,10 @@ Moralis.Cloud.define('request_media', async (req) => {
         },
         nft_id:{
             ...validation_id,
-            message: 'Nft_id is not a valid ID'
+            message: 'NFT_id is not passed or it has an error'
         }
-    }
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('ask_for_request', async (req) => {
@@ -163,4 +151,12 @@ Moralis.Cloud.define('ask_for_request', async (req) => {
         }
     }
     
+},{
+    fields:{
+        nft_id:{
+            ...validation_id,
+            error: 'NFT_id is not passed or it has an error'
+        }
+    },
+    requireUser: true
 });

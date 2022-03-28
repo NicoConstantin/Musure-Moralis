@@ -34,12 +34,6 @@ Moralis.Cloud.define('get_marketplace', async (req) => {
             if (filter.rarity) {
                 query_nfts.equalTo('rarityNumber', filter.rarity)
             }
-            if (filter.powerMin) {
-                query_nfts.greaterThanOrEqualTo('power', filter.powerMin)
-            }
-            if (filter.powerMax) {
-                query_nfts.lessThanOrEqualTo('power', filter.powerMax)
-            }
             if (filter.priceMin) {
                 query_nfts.greaterThanOrEqualTo('price', filter.priceMin)
             }

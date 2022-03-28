@@ -103,4 +103,11 @@ Moralis.Cloud.define('get_gallery', async (req) => {
     } catch (error) {
         return error.message
     }
+},{
+    fields:{
+        user_id: {
+            ...validation_id,
+            error: 'User_id is not passed or it has an error'
+        }
+    }
 });
