@@ -15,6 +15,15 @@ let validation_name = {
     error: `Name must be between ${min_length_names} and ${max_length_names} characters length`
 }
 
+let validation_lore_bio = {
+    required: true,
+    type: String,
+    options: val=>{
+        return val.length >= min_length_bio && val.length <= max_length_bio
+    },
+    error: `Lore/bio must be between ${min_length_bio} and ${max_length_bio} characters length`
+}
+
 let validation_price = {
     required: true,
     type: Number,
@@ -63,4 +72,12 @@ let validation_email = {
         return regex_email.test(val)
     },
     error: `Email must satisfy regex`
+}
+
+let validation_color = {
+    required:true,
+    type: String,
+    options: val=>{
+        return regex_hex_color.test(val)
+    },
 }

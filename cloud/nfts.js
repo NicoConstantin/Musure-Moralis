@@ -72,13 +72,13 @@ Moralis.Cloud.define('create_nft', async (req) => {
         if(release_time){
             //VALIDATING TIME PARAMETERS
 
-            if(date && typeof date !== 'string' || !regexDate.test(date)){
+            if(date && typeof date !== 'string' || !regex_date.test(date)){
                 return 'Date must comply with the required parameters'
             }
-            if(time && typeof time !== 'string' || !regexTime.test(time)){
+            if(time && typeof time !== 'string' || !regex_time.test(time)){
                 return 'Time must comply with the required regex'
             }
-            if(timezone && typeof timezone !== 'string' || !regexTimezone.test(time)){
+            if(timezone && typeof timezone !== 'string' || !regex_timezone.test(time)){
                 return 'Timezone must comply with the required parameters'
             }
 
@@ -187,14 +187,7 @@ Moralis.Cloud.define('create_nft', async (req) => {
 },{
     fields:{
         name: validation_name,
-        lore:{
-            required: true,
-            type: String,
-            options: val=>{
-                return val.length >= min_length_bio && val.length <= max_length_bio
-            },
-            error: `Lore must be between ${min_length_bio} and ${max_length_bio} characters length`
-        },
+        lore: validation_lore_bio,
         rarity: validation_rarity,
         amount_emit:{
             required: true,
@@ -374,4 +367,72 @@ Moralis.Cloud.define('change_price_nft', async (req) => {
         price: validation_price
     },
     requireUser: true
+});
+
+Moralis.Cloud.define('set_info_designer', async (req) => {
+    
+    const {color_primary, color_secondary, color_details, logo, name, lore, style, phrase, inspiration_images} = req.params;
+    const user = req.user;
+
+    try {
+        if(!user.isValidated){
+            return "You don't have permission cause you're not validated"
+        }
+        if(inspiration_images){
+            if(inspiration_images.length > 3 || inspiration_images.length <= 0){
+                return 'You should upload 3 images at maximum'
+            }
+            const checkIpfsRegex = inspiration_images.filter(img => !regex_ipfs_moralis.test(img))
+            if(checkIpfsRegex.length > 0){
+                return "At least one image does't satisfy the required ipfs regex"
+            }
+        }
+
+    } catch (error) {
+        return error.message
+    }
+},{
+    fields:{
+        color_primary: {
+            ...validation_color,
+            error: 'Color_primary must satisfy hex color regex'
+        },
+        color_secondary: {
+            ...validation_color,
+            error: 'Color_secondary must satisfy hex color regex'
+        },
+        color_details: {
+            ...validation_color,
+            error: 'Color_details must satisfy hex color regex'
+        },
+        logo:{
+            ...validation_moralis_url,
+            error: 'Logo must satisfy ipfs regex'
+        },
+        name: validation_name,
+        lore: validation_lore_bio,
+        style: {
+            required: true,
+            type: Array,
+            options: style => {
+                let aux = ['Realista','Fotográfico','Geometrico','Psicodélico','Lineal','Monocromático','Tipográfico','Minimalista','Grunge','Trash','Vintage']
+                let check_includes = style.map(s=>{
+                    if(!aux.includes(s)){
+                        return s
+                    }
+                })
+                return check_includes.length === 0 && style.length === 2
+            },
+            error: 'Style must be an array of the specified styles and 2 length maximum'
+        },
+        phrase:{
+            required: true,
+            type: String,
+            options: val => {
+                let aux = val.split(" ")
+                return aux.length <= 15 
+            },
+            error: 'Phrase must have 15 words at maximum'
+        }
+    }
 });
