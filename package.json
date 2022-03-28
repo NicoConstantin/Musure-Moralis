@@ -4,8 +4,9 @@
   "description": "cloud functions to run on Moralis Server ",
   "main": "index.js",
   "scripts": {
-    "production":"moralis-admin-cli watch-cloud-folder --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje --moralisSubdomain msmcvsywhirg.usemoralis.com --autoSave 1 --moralisCloudfolder ./cloud",
+    "prod":"moralis-admin-cli watch-cloud-folder --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje --moralisSubdomain msmcvsywhirg.usemoralis.com --autoSave 1 --moralisCloudfolder ./cloud",
     "dev": "moralis-admin-cli watch-cloud-folder --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje --moralisSubdomain ojmqsfe6pqmb.usemoralis.com --autoSave 1 --moralisCloudfolder ./cloud",
+    "qa": "moralis-admin-cli watch-cloud-folder --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje --moralisSubdomain 2b1u5lkroedd.usemoralis.com --autoSave 1 --moralisCloudfolder ./cloud",
     "logs":"moralis-admin-cli get-logs --moralisApiKey 0aDQRirosn5C1KX --moralisApiSecret L2i3BwDkYeQkXje",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
