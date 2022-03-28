@@ -1,7 +1,7 @@
 
 Moralis.Cloud.define('get_nfts_assets', async (req) => {
 
-    const query_nfts_assets_main = new Moralis.Query('NFT_ASSETS_MAIN');
+    const query_nfts_assets_main = new Moralis.Query('ACCESSORY_TYPE_MASTER');
 
     try {
         const nfts_main = await query_nfts_assets_main.find({ useMasterKey: true })

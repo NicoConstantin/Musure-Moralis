@@ -60,7 +60,7 @@ Moralis.Cloud.define('get_gallery', async (req) => {
 
         let resultAccessories = await query_user_NFT.find({useMasterKey:true})
         
-        const query_NFT_asset = new Moralis.Query ('NFT_ASSETS_MAIN')
+        const query_NFT_asset = new Moralis.Query ('ACCESSORY_TYPE_MASTER')
         let nft_asset_uids = await query_NFT_asset.find({useMasterKey: true});
 
         let uids = {}
