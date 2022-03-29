@@ -1,7 +1,9 @@
 const logger = Moralis.Cloud.getLogger()
 const NFT = Moralis.Object.extend('AccessoryNFT');
 const collection = Moralis.Object.extend('Collection');
-const order = Moralis.Object.extend('PendingOrder');
+const order_AR = Moralis.Object.extend('OrderAR');
+const order_teaser = Moralis.Object.extend('OrderTeaser');
+const design_order = Moralis.Object.extend('OrderDesign');
 
 const min_length_names = 3;
 const max_length_names = 15;
