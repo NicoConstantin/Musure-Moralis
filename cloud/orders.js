@@ -5,16 +5,13 @@ Moralis.Cloud.define('order_design', async (req) => {
 
     try {
         //VALIDATIONS
-        if(!user.isValidated){
-            return "You don't have permission cause you're not validated"
-        }
         if(inspiration_images){
-            if(inspiration_images.length > 3 || inspiration_images.length <= 0){
+            if(inspiration_images.length > 3){
                 return 'You should upload 3 images at maximum'
             }
             const checkIpfsRegex = inspiration_images.filter(img => !regex_ipfs_moralis.test(img))
             if(checkIpfsRegex.length > 0){
-                return "At least one image does't satisfy the required ipfs regex"
+                return "At least one image doesn't satisfy the required ipfs regex"
             }
         }
         const new_design_order = new design_order();
@@ -27,6 +24,8 @@ Moralis.Cloud.define('order_design', async (req) => {
         new_design_order.set('style', style)
         new_design_order.set('phrase', phrase)
         new_design_order.set('done', false)
+        new_design_order.set('userValidated', user.attributes.isValidated)
+        new_design_order.set('requester', user)
         if(inspiration_images){
             new_design_order.set('inspirationImages', inspiration_images)
         }
@@ -66,15 +65,11 @@ Moralis.Cloud.define('order_design', async (req) => {
         lore: validation_lore_bio,
         style: {
             required: true,
-            type: Array,
+            type: Object,
             options: style => {
                 let aux = ['Realista','Fotográfico','Geometrico','Psicodélico','Lineal','Monocromático','Tipográfico','Minimalista','Grunge','Trash','Vintage']
-                let check_includes = style.map(s=>{
-                    if(!aux.includes(s)){
-                        return s
-                    }
-                })
-                return check_includes.length === 0 && style.length === 2
+                let check_includes = style.filter(s => !aux.includes(s))
+                return check_includes.length === 0 && style.length <= 2 && style.length >= 1
             },
             error: 'Style must be an array of the specified styles and 2 length maximum'
         },
@@ -83,11 +78,12 @@ Moralis.Cloud.define('order_design', async (req) => {
             type: String,
             options: val => {
                 let aux = val.split(" ")
-                return aux.length <= 15 
+                return aux.length <= 15 && val.length <= max_length_phrase
             },
-            error: 'Phrase must have 15 words at maximum'
+            error: 'Phrase must have 15 words at maximum and 120 max characters length'
         }
-    }
+    },
+    requireUser: true
 });
 
 Moralis.Cloud.define('order_media', async (req) => {

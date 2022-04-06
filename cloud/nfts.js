@@ -67,10 +67,9 @@ Moralis.Cloud.define('create_nft', async (req) => {
         }
 
         let unixstamp = 0
-        
         if(release_time){
             //VALIDATING TIME PARAMETERS
-
+            
             if(date && typeof date !== 'string' || !regex_date.test(date)){
                 return 'Date must comply with the required parameters'
             }
@@ -80,53 +79,20 @@ Moralis.Cloud.define('create_nft', async (req) => {
             if(timezone && typeof timezone !== 'string' || !regex_timezone.test(time)){
                 return 'Timezone must comply with the required parameters'
             }
-
-            //PROCESSING DATE
-            unixstamp = Math.floor(Date.parse(date) / 1000 )
-
-            //PROCESSING TIME
-            let arrayTime = time.split(':')
-            let hourTime = Number(arrayTime[0])
-            let minutesTime = Number(arrayTime[1])
-
-            //PROCESSING TIMEZONE
-            let arrayTimezone = timezone.split(':')
-            let hourTimezone = Number(arrayTimezone[0])
-            let minutesTimezone = Number(arrayTimezone[1])
-
-            //JOINING ALL DATE INFO
-            unixstamp = unixstamp + ((hourTime - hourTimezone) * 3600)
-            unixstamp = unixstamp + ((minutesTime + minutesTimezone) * 60)
+            
+            unixstamp = timeParser(date, time, timezone)
         }
         
-        //GENERATING ID FOR NFT
-        let userID= user.id
-        const nameTrimmed = name.split(" ").join("")
-        let nftID = ""
-        for (let j = 0; j < nameTrimmed.length; j++) {
-            
-            nftID= nftID + userID[j] + nameTrimmed[j] + Math.floor(Math.random() * 10)
-            
-            if(j+1 >= nameTrimmed.length){
-                nftID = nftID + userID.slice(j+1)
-                break;
-            }
-
-            if(j+1 >= userID.length){
-                nftID = nftID + nameTrimmed.slice(j+1)
-                break;
-            }
-        }
-
-        nftID = nftID.slice(0,24).split("").reverse().join("")
-
         //SETTING NOTIFICATION FIELDS
         if(notification_new_assets || notification_newsletter){
             user.set('notificationNewsletter', notification_newsletter);
             user.set('notificationNewAsset', notification_new_assets);
             await user.save(null,{ useMasterKey: true })
         }
-
+        
+        //GENERATING ID FOR NFT
+        nftID = generateIdNFT(user, name)
+        
         //CREATING NFTS
         for (let i = 0; i < amount_emit; i++) {
             const new_NFT = new NFT();
@@ -146,22 +112,20 @@ Moralis.Cloud.define('create_nft', async (req) => {
             new_NFT.set('blockchain', blockchain);
             new_NFT.set('teaser', null);
             new_NFT.set('filterAR', null);
+            new_NFT.set('price', price);
 
             if(collection){
                 new_NFT.set('collection', collection);
             }
-            if(!collection){
+            else{
                 new_NFT.set('collection', null);
             }
-
-            new_NFT.set('price', price);
-
             if(release_time){
                 new_NFT.set('releaseTime', unixstamp);
                 new_NFT.set('onSale', false);
                 new_NFT.set('publishedTime', null);
             }
-            if(!release_time) {
+            else{
                 new_NFT.set('releaseTime', null);
                 new_NFT.set('onSale', true);
                 new_NFT.set('publishedTime', getDate());
@@ -365,4 +329,30 @@ Moralis.Cloud.define('change_price_nft', async (req) => {
         price: validation_price
     },
     requireUser: true
+});
+
+Moralis.Cloud.define('set_QR', async (req) => {
+    const { nft_id, QR} = req.params;
+
+    try {
+        
+        const query_nfts = new Moralis.Query('AccessoryNFT')
+        query_nfts.equalTo('idNFT', nft_id)
+        const nfts = await query_nfts.find({useMasterKey: true})
+
+        for (let i = 0; i < nfts.length; i++) {
+            nfts[i].set('QR', QR)
+            await nfts[i].save(null,{ useMasterKey: true}) 
+        }
+
+        return {
+            setted: true,
+            message: 'QR setted'
+        }
+    } catch (error) {
+        return {
+            setted: false,
+            message: error.message
+        }
+    }
 });
