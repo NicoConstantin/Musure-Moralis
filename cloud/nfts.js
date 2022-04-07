@@ -3,6 +3,7 @@ Moralis.Cloud.define('get_nfts_assets', async (req) => {
     const query_nfts_assets_main = new Moralis.Query('ACCESSORY_TYPE_MASTER');
 
     try {
+        query_nfts_assets_main.descending('idSketchfab')
         const nfts_main = await query_nfts_assets_main.find({ useMasterKey: true })
 
         return {
