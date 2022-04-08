@@ -130,3 +130,39 @@ Moralis.Cloud.define('patch_creator_data', async (req) => {
     }
     
 });
+
+Moralis.Cloud.beforeSave(Moralis.User, async (req) => {
+    const validated = req.object.get("isValidated");
+    if (validated === undefined) {
+        req.object.set('isValidated', false)
+        await req.object.save(null, {useMasterKey: true})
+    } 
+});
+
+Moralis.Cloud.define("get_creators", async (req) =>{
+
+    const query_user = new Moralis.Query(Moralis.User)
+
+    try {
+
+        let users = await query_user.find({ useMasterKey:true })
+        let users_clean_data = users.map(e=>{
+            const obj = {
+                id: e.id,
+                isValidated: e.attributes.isValidated,
+                creatorName: e.attributes.creatorName,
+                creatorTwitter: e.attributes.creatorTwitter,
+                twitterFollowers: e.attributes.twitterFollowers,
+                creatorInstagram: e.attributes.creatorInstagram? `https://www.instagram.com/${e.attributes.creatorInstagram}/?__a=1`: null,
+                instagramFollowers: e.attributes.instagramFollowers,
+                creatorEmail: e.attributes.creatorEmail,
+                profileImage: e.attributes.creatorImage
+            }
+            return obj
+        })
+        return users_clean_data
+
+    } catch (error) {
+        return error.message
+    }
+})

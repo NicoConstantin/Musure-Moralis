@@ -206,3 +206,20 @@ Moralis.Cloud.define('ask_for_orders', async (req) => {
     },
     requireUser: true
 });
+
+Moralis.Cloud.define('ask_for_design', async (req) => {
+    
+    try {
+        const query_designs = new Moralis.Query('OrderDesign')
+        query_designs.equalTo('userValidated', true)
+        const designs_validated = await query_designs.find({useMasterKey: true})
+
+        return {
+            orders: designs_validated,
+            message: 'Design orders of validated creators'
+        }
+        
+    } catch (error) {
+        return error.message
+    }
+});
