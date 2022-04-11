@@ -125,7 +125,7 @@ Moralis.Cloud.define('order_media', async (req) => {
             if(order_kind === 'OrderAR'){
                 new_order = new order_AR();
             }
-            if(order_kind === 'OrderAR'){
+            if(order_kind === 'OrderTeaser'){
                 new_order = new order_teaser();
             }
             new_order.set('idNFT', nft_id)
@@ -147,7 +147,6 @@ Moralis.Cloud.define('order_media', async (req) => {
     }
 },{
     fields:{
-        email: validation_email,
         order_kind:{
             required: true,
             type: String,
@@ -173,20 +172,23 @@ Moralis.Cloud.define('ask_for_orders', async (req) => {
         //query all filterAr orders
         const query_order_AR = new Moralis.Query('OrderAR')
         query_order_AR.ascending('createdAt')
-        const all_orders_AR = await query_order_AR.first({useMasterKey: true})
+        const all_orders_AR = await query_order_AR.find({useMasterKey: true})
 
         //query all teaser orders
         const query_order_teaser = new Moralis.Query('OrderTeaser')
         query_order_teaser.ascending('createdAt')
-        const all_orders_teaser = await query_order_teaser.first({useMasterKey: true})
+        const all_orders_teaser = await query_order_teaser.find({useMasterKey: true})
 
         //finding index queue
-        const position_order_ar = all_orders_AR.findIndex(e=>e.attibutes.idNFT === nft_id && e.attributes.owner === user)
-        const position_order_teaser = all_orders_teaser.findIndex(e=>e.attibutes.idNFT === nft_id && e.attributes.owner === user)
-        
+        const position_order_ar = all_orders_AR.findIndex(e => e.attributes?.idNFT === nft_id && e.attributes?.requester.id === user.id)
+        const position_order_teaser = all_orders_teaser.findIndex(e => e.attributes?.idNFT === nft_id && e.attributes?.requester.id === user.id)
+        logger.info(JSON.stringify(position_order_ar))
+        logger.info(JSON.stringify(position_order_teaser))
+
         return {
-            requestedTeaser: position_order_teaser === -1 ? false: position_order_teaser,
-            requesterAR: position_order_ar === -1 ? false: position_order_ar,
+            //SE LE SUMA 1 PORQUE LA PRIMER POSICION ES 0 y #0 en la cola no tiene sentido
+            requestedTeaser: position_order_teaser === -1 ? false: position_order_teaser + 1,
+            requestedAR: position_order_ar === -1 ? false: position_order_ar + 1,
             message: 'Orders requested'
         }
         
@@ -211,11 +213,29 @@ Moralis.Cloud.define('ask_for_design', async (req) => {
     
     try {
         const query_designs = new Moralis.Query('OrderDesign')
+        query_designs.include('requester')
         query_designs.equalTo('userValidated', true)
         const designs_validated = await query_designs.find({useMasterKey: true})
 
+        const results = designs_validated.map(e=>{
+            return {
+                colorPrimary: e.attributes.colorPrimary,
+                colorSecondary: e.attributes.colorSecondary,
+                colorDetails: e.attributes.colorDetails,
+                logo: e.attributes.logo,
+                name: e.attributes.name,
+                lore: e.attributes.lore,
+                styles: e.attributes.style.join(", "),
+                phrase: e.attributes.phrase? e.attributes.phrase : "-",
+                inspirationImages: e.attributes.inspirationImages.length > 0 ? e.attributes.inspirationImages : "-",
+                requesterName: e.attributes.requester.attributes.creatorName? e.attributes.requester.attributes.creatorName : "NO TIENE",
+                requesterImageProfile: e.attributes.requester.attributes.creatorImage ? e.attributes.requester.attributes.creatorImage : "NO TIENE",
+                requesterEmail: e.attributes.requester.attributes.creatorEmail? e.attributes.requester.attributes.creatorEmail : "NO TIENE"
+            }
+        })
+
         return {
-            orders: designs_validated,
+            orders: results,
             message: 'Design orders of validated creators'
         }
         
